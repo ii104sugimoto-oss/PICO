@@ -30,34 +30,39 @@
   .app {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 14px 14px 36px;
+    padding: 6px 12px 8px;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   /* ---------- タイトルと説明バナー ---------- */
   h1 {
-    margin: 4px 0 10px;
-    font-size: clamp(22px, 3.6vw, 38px);
+    margin: 0;
+    font-size: clamp(16px, 3.4vh, 28px);
     font-weight: 800;
     letter-spacing: .04em;
     text-align: center;
   }
   .banner {
     background: #fff;
-    border: 4px solid var(--orange);
-    border-radius: 20px;
-    padding: 12px 18px;
+    border: 3px solid var(--orange);
+    border-radius: 14px;
+    padding: 4px 12px;
     text-align: center;
-    font-size: clamp(20px, 3.2vw, 36px);
+    font-size: clamp(16px, 3.8vh, 28px);
     font-weight: 800;
-    line-height: 1.4;
-    box-shadow: 0 5px 0 var(--orange-dark);
+    line-height: 1.3;
+    box-shadow: 0 3px 0 var(--orange-dark);
   }
 
   /* ---------- ロールケーキ ---------- */
-  .stage { margin: 8px 0 4px; }
+  .stage { flex: 1 1 0; min-height: 120px; margin: 0; }
   #cake {
     width: 100%;
-    height: auto;
+    height: 100%;
     display: block;
     touch-action: manipulation;
     user-select: none;
@@ -107,39 +112,33 @@
   .controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     justify-content: center;
     align-items: center;
-    margin: 10px 0 14px;
-  }
-  .controls-label {
-    flex-basis: 100%;
-    text-align: center;
-    font-weight: 800;
-    font-size: clamp(16px, 2.2vw, 22px);
+    margin: 0;
   }
   .btn {
     font-family: inherit;
-    font-size: clamp(18px, 2.4vw, 26px);
+    font-size: clamp(15px, 2.1vw, 22px);
     font-weight: 800;
-    min-height: 60px;
-    padding: 8px 20px;
-    border-radius: 16px;
+    min-height: 46px;
+    padding: 4px 14px;
+    border-radius: 14px;
     border: 3px solid var(--orange);
     background: #fff;
     color: var(--orange-dark);
-    box-shadow: 0 5px 0 var(--orange);
+    box-shadow: 0 4px 0 var(--orange);
     cursor: pointer;
     transition: transform .1s, box-shadow .1s, background .2s;
   }
-  .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--orange); }
-  .btn.on { background: var(--orange); color: #fff; box-shadow: 0 5px 0 var(--orange-dark); }
+  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--orange); }
+  .btn.on { background: var(--orange); color: #fff; box-shadow: 0 4px 0 var(--orange-dark); }
   .btn:focus-visible { outline: 4px solid var(--blue); outline-offset: 2px; }
   .btn.reset {
     border-color: #4e9a6a;
     color: #2f7a4d;
-    box-shadow: 0 5px 0 #4e9a6a;
-    margin-left: 8px;
+    box-shadow: 0 4px 0 #4e9a6a;
+    margin-left: 4px;
   }
   .btn.reset:active { box-shadow: 0 1px 0 #4e9a6a; }
 
@@ -147,32 +146,38 @@
   .bottom {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 8px;
   }
-  @media (min-width: 840px) {
+  @media (min-width: 700px) {
     .bottom.two { grid-template-columns: 1fr 1fr; }
   }
   .card {
     background: var(--card);
     border: 3px solid var(--line);
-    border-radius: 22px;
-    padding: 16px 18px;
+    border-radius: 16px;
+    padding: 6px 12px;
   }
-  .result { text-align: center; }
+  .result {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  .rtext { text-align: left; }
   .msg {
-    font-size: clamp(22px, 3.4vw, 38px);
+    font-size: clamp(18px, 3.6vh, 30px);
     font-weight: 800;
     line-height: 1.35;
     min-height: 1.4em;
   }
-  .sub { font-size: clamp(16px, 2.2vw, 22px); font-weight: 700; margin-top: 4px; color: #7a5a35; }
+  .sub { font-size: clamp(13px, 2.4vh, 18px); font-weight: 700; margin-top: 2px; color: #7a5a35; }
 
   .frac {
     display: inline-flex;
     flex-direction: column;
     align-items: center;
-    margin: 10px 0 2px;
-    font-size: clamp(64px, 12vw, 120px);
+    margin: 0;
+    font-size: clamp(40px, 10vh, 80px);
     font-weight: 800;
     line-height: 1.05;
     min-width: 1.4em;
@@ -189,10 +194,9 @@
     40% { transform: scale(1.25); }
     100% { transform: scale(1); }
   }
-  .reading { font-size: clamp(18px, 2.4vw, 26px); font-weight: 700; min-height: 1.4em; color: #7a5a35; }
+  .reading { font-size: clamp(14px, 2.6vh, 20px); font-weight: 700; min-height: 1.3em; color: #7a5a35; }
 
-  .meaning h2 { margin: 0 0 10px; font-size: clamp(18px, 2.4vw, 24px); }
-  .meaning.hidden { display: none; }
+    .meaning.hidden { display: none; }
   .m-card {
     display: block;
     width: 100%;
@@ -200,8 +204,8 @@
     font-family: inherit;
     color: var(--ink);
     border-radius: 16px;
-    padding: 12px 14px;
-    margin-bottom: 10px;
+    padding: 4px 10px;
+    margin-bottom: 6px;
     cursor: pointer;
     border: 3px solid;
   }
@@ -209,15 +213,13 @@
   .m-card.den { background: var(--blue-soft); border-color: var(--blue); }
   .m-card.num { background: var(--red-soft); border-color: var(--red); }
   .m-card:focus-visible { outline: 4px solid var(--ink); outline-offset: 2px; }
-  .m-head { display: flex; align-items: center; gap: 10px; font-size: clamp(20px, 2.8vw, 28px); font-weight: 800; }
-  .m-tag { color: #fff; border-radius: 10px; padding: 2px 12px; }
+  .m-head { display: flex; align-items: center; gap: 10px; font-size: clamp(15px, 2.8vh, 22px); font-weight: 800; }
+  .m-tag { color: #fff; border-radius: 8px; padding: 0 10px; }
   .den .m-tag { background: var(--blue); }
   .num .m-tag { background: var(--red); }
-  .m-desc { font-size: clamp(16px, 2.1vw, 21px); font-weight: 700; margin-top: 4px; }
-  .m-val { font-size: clamp(18px, 2.4vw, 24px); font-weight: 800; margin-top: 4px; }
+  .m-val { font-size: clamp(14px, 2.6vh, 20px); font-weight: 800; margin-top: 1px; }
   .den .m-val { color: var(--blue); }
   .num .m-val { color: var(--red); }
-  .m-look { font-size: 15px; font-weight: 700; margin-top: 4px; color: #7a5a35; }
 
   @media (prefers-reduced-motion: reduce) {
     .piece, .bump, #cake.hl-den .bar-b, #cake.hl-num .bar-r { animation: none !important; }
@@ -235,7 +237,6 @@
   </div>
 
   <div class="controls" id="controls">
-    <div class="controls-label">ボタンをおして、ロールケーキを分けてみよう</div>
     <button class="btn" data-n="2" type="button">2つに分ける</button>
     <button class="btn" data-n="3" type="button">3つに分ける</button>
     <button class="btn" data-n="4" type="button">4つに分ける</button>
@@ -246,27 +247,26 @@
 
   <section class="bottom" id="bottom">
     <div class="card result">
-      <div class="msg" id="msg" aria-live="polite"></div>
-      <div class="sub" id="sub"></div>
       <div class="frac" id="frac" aria-live="polite">
         <div class="num" id="numEl">？</div>
         <div class="bar"></div>
         <div class="den" id="denEl">1</div>
       </div>
-      <div class="reading" id="reading"></div>
+      <div class="rtext">
+        <div class="msg" id="msg" aria-live="polite"></div>
+        <div class="sub" id="sub"></div>
+        <div class="reading" id="reading"></div>
+      </div>
     </div>
 
     <div class="card meaning hidden" id="meaning">
-      <h2>分母と分子のひみつ</h2>
-      <button type="button" class="m-card den" id="cardDen">
+      <button type="button" class="m-card den" id="cardDen" title="タップすると、ケーキに青い線が光るよ">
         <div class="m-head"><span class="m-tag">分母</span><span>全部をいくつに分けたか</span></div>
         <div class="m-val" id="denVal"></div>
-        <div class="m-look">タップすると、ケーキに青い線が光るよ</div>
       </button>
-      <button type="button" class="m-card num" id="cardNum">
+      <button type="button" class="m-card num" id="cardNum" title="タップすると、選んだケーキに赤い線が光るよ">
         <div class="m-head"><span class="m-tag">分子</span><span>そのうち、いくつ分を選んだか</span></div>
         <div class="m-val" id="numVal"></div>
-        <div class="m-look">タップすると、選んだケーキに赤い線が光るよ</div>
       </button>
     </div>
   </section>
@@ -470,9 +470,9 @@
     var showMeaning = n > 1;
     meaningEl.classList.toggle('hidden', !showMeaning);
     bottomEl.classList.toggle('two', showMeaning);
-    denVal.textContent = '→ ぜんぶで' + unit(n) + 'に分けたから、分母は ' + n;
-    numVal.textContent = k > 0 ? '→ ' + k + 'つ分を選んだから、分子は ' + k
-                               : '→ まだ選んでいないよ。ケーキをタップしてみよう';
+    denVal.textContent = '→ ぜんぶで' + unit(n) + 'に分けたから ' + n;
+    numVal.textContent = k > 0 ? '→ ' + k + 'つ分を選んだから ' + k
+                               : '→ まだ選んでいないよ';
 
     // ボタンの強調
     var btns = document.querySelectorAll('#controls .btn[data-n]');
