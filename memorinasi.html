@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>みずで かんがえよう（めもり すうじなし）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brown:#8B5E34; --brown-dark:#6B4423; --ink:#4A3B2A;
+    --sky-top:#E3F6FF; --sky-bottom:#FFF6E2;
+    --water-light:#82E0FF; --water-dark:#1E9BE0;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    margin:0; padding:0; height:100%;
+    font-family:'M PLUS Rounded 1c',sans-serif;
+    background:linear-gradient(180deg,var(--sky-top),var(--sky-bottom));
+    color:var(--ink); overflow-x:hidden; overflow-y:auto;
+  }
+  .stage{
+    max-width:1500px; min-height:100vh; margin:0 auto; padding:1vh 16px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .title{
+    font-size:clamp(18px,3.4vh,30px); font-weight:800; color:var(--brown-dark);
+    margin:0 0 1vh; text-align:center;
+    text-shadow:2px 2px 0 #fff, 0 3px 6px rgba(139,94,52,.15);
+  }
+  .title small{ font-size:.6em; color:#6B7C93; margin-left:.6em; text-shadow:none; }
+
+  .lab{
+    background:#fff; border-radius:26px; width:100%;
+    padding:1.6vh clamp(14px,2.5vw,36px);
+    box-shadow:0 8px 0 #DCE9F2, 0 12px 22px rgba(90,120,150,.18);
+  }
+  .lab-content{
+    display:flex; align-items:center; justify-content:center;
+    gap:clamp(18px,3vw,48px); flex-wrap:wrap;
+  }
+
+  /* ===== cups ===== */
+  .cups-area{ display:flex; align-items:flex-end; gap:clamp(8px,1.6vw,24px); }
+  .small-block, .cup-block{ display:flex; flex-direction:column; align-items:center; }
+  .big-cups{ display:flex; align-items:flex-end; gap:clamp(4px,1vw,14px); }
+  svg.cup{ display:block; }
+  .big-cups svg.cup{ height:clamp(200px,min(68vh,26vw),560px); width:auto; }
+  .cap{
+    margin-top:4px; font-weight:800; font-size:clamp(11px,1.7vh,16px);
+    color:var(--brown-dark); background:#FFF3D6; border:2px solid #FFD98E;
+    padding:2px 12px; border-radius:999px; white-space:nowrap;
+  }
+  .cup-outline{ fill:none; stroke:var(--brown); stroke-width:5; stroke-linejoin:round; }
+  .tick-line{ stroke:var(--brown); stroke-width:3; stroke-linecap:round; }
+  .tick-label{ font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700; font-size:15px; fill:var(--brown-dark); }
+  .tick-label.whole{ fill:#E85D75; font-weight:800; font-size:22px; }
+  .water{ transition:y .5s cubic-bezier(.4,0,.2,1), height .5s cubic-bezier(.4,0,.2,1); }
+  .wave{ transition:cy .5s cubic-bezier(.4,0,.2,1), opacity .3s; }
+  .fullmark{
+    font-family:'M PLUS Rounded 1c',sans-serif; font-weight:800; font-size:130px;
+    fill:#fff; opacity:0; transition:opacity .4s;
+  }
+  .fullmark.show{ opacity:.6; }
+
+  /* ===== side panel ===== */
+  .side-panel{
+    display:flex; flex-direction:column; align-items:center;
+    gap:clamp(8px,1.5vh,16px); width:clamp(300px,36vw,520px);
+  }
+  .problem{
+    width:100%; background:#FFF8E1; border:3px dashed #FFD98E; border-radius:20px;
+    padding:clamp(6px,1.2vh,12px) 16px; text-align:center;
+  }
+  .problem .label{ font-size:clamp(11px,1.7vh,15px); font-weight:800; color:#C98A1B; }
+  .problem .expr{
+    font-size:clamp(24px,5.4vh,48px); font-weight:800; color:var(--brown-dark);
+    line-height:1.15; letter-spacing:.02em;
+  }
+  .problem .expr .q{ color:#E85D75; }
+  .problem .hint{ font-size:clamp(13px,2.2vh,20px); font-weight:800; color:#6B7C93; margin-top:2px; }
+  .dots{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-top:6px; }
+  .dot{
+    width:clamp(14px,2.8vh,24px); height:clamp(14px,2.8vh,24px); border-radius:50%;
+    background:#E4F1FA; border:2px solid #BFE8FF; transition:background .25s, transform .25s;
+  }
+  .dot.on{ background:linear-gradient(180deg,var(--water-light),var(--water-dark)); border-color:#1E88C7; transform:scale(1.1); }
+
+  .readout{
+    display:flex; flex-direction:column; align-items:center;
+    background:linear-gradient(180deg,#F2FBFF,#E4F5FF);
+    border:3px solid #BFE8FF; border-radius:24px; width:100%;
+    padding:clamp(4px,1vh,10px) 20px; box-shadow:inset 0 -4px 0 rgba(191,232,255,.6);
+  }
+  .readout .num{
+    font-size:clamp(46px,11vh,104px); font-weight:800; color:#1E88C7; line-height:1;
+    text-shadow:3px 3px 0 #D6EFFF; transition:transform .15s;
+  }
+  .readout .num.bump{ transform:scale(1.15); }
+  .readout .count{ font-size:clamp(16px,3.2vh,28px); font-weight:800; color:#4FA8D8; margin-top:2px; }
+  .readout .count b{ color:#E85D75; font-size:1.25em; }
+
+  .message{
+    min-height:2.6em; font-size:clamp(13px,2.3vh,20px); font-weight:800; color:#E85D75;
+    text-align:center; line-height:1.3; display:flex; align-items:center;
+  }
+  .message.good{ color:#2BA86B; font-size:clamp(16px,3vh,26px); }
+
+  .controls{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(8px,1.4vh,14px); width:100%; }
+  .btn{
+    font-family:'M PLUS Rounded 1c',sans-serif; font-weight:800;
+    font-size:clamp(15px,2.6vh,21px); color:#fff; border:none; border-radius:999px;
+    padding:clamp(8px,1.5vh,16px) 12px; min-height:clamp(42px,6.4vh,62px);
+    cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;
+    box-shadow:0 5px 0 rgba(0,0,0,.15), 0 7px 12px rgba(0,0,0,.12);
+    transition:transform .08s, box-shadow .08s, filter .15s; touch-action:manipulation;
+  }
+  .btn:active{ transform:translateY(4px); box-shadow:0 1px 0 rgba(0,0,0,.15); }
+  .btn:disabled{ opacity:.4; cursor:not-allowed; filter:grayscale(.3); transform:none; }
+  .b-add{ background:linear-gradient(135deg,#3FE0B0,#17B4C7); box-shadow:0 5px 0 #0E8FA0, 0 7px 12px rgba(23,180,199,.35); }
+  .b-sub{ background:linear-gradient(135deg,#FF9E7A,#FF6161); box-shadow:0 5px 0 #D6472F, 0 7px 12px rgba(255,97,97,.35); }
+  .b-prob{ background:linear-gradient(135deg,#FFD36E,#FFA94D); box-shadow:0 5px 0 #D98320, 0 7px 12px rgba(255,169,77,.35); }
+  .b-reset{ background:linear-gradient(135deg,#B79CF2,#9575CD); box-shadow:0 5px 0 #6E4FA8, 0 7px 12px rgba(149,117,205,.35); }
+
+  /* ===== effects ===== */
+  #fx{ position:fixed; inset:0; pointer-events:none; z-index:40; }
+  .drop{
+    position:fixed; width:12px; height:16px; opacity:0;
+    background:radial-gradient(circle at 35% 30%,#BEF3FF,var(--water-dark));
+    border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+  }
+  .confetti-layer{ position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:50; }
+  .confetti{
+    position:absolute; top:-20px; width:10px; height:16px; opacity:.95;
+    animation:fall linear forwards;
+  }
+  @keyframes fall{ to{ transform:translateY(110vh) rotate(600deg); } }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <h1 class="title">みずで かんがえよう<small>しょうすうの たしざん・ひきざん</small></h1>
+
+  <div class="lab">
+    <div class="lab-content">
+
+      <div class="cups-area">
+        <div class="big-cups" id="bigCups"></div>
+      </div>
+
+      <div class="side-panel">
+        <div class="problem" id="problem">
+          <div class="label">もんだい</div>
+          <div class="expr" id="expr">「もんだいを だす」を おしてね</div>
+          <div class="hint" id="hint"></div>
+          <div class="dots" id="dots"></div>
+        </div>
+
+        <div class="readout">
+          <div class="num" id="num">0</div>
+          <div class="count">0.1が <b id="cnt">0</b>こ</div>
+        </div>
+
+        <div class="message" id="msg">0.1が 10こ あつまると 1 だよ</div>
+
+        <div class="controls">
+          <button class="btn b-add" id="addBtn">💧 0.1 いれる</button>
+          <button class="btn b-sub" id="subBtn">🚿 0.1 すてる</button>
+          <button class="btn b-add" id="addHalfBtn">💧 0.5 いれる</button>
+          <button class="btn b-sub" id="subHalfBtn">🚿 0.5 すてる</button>
+          <button class="btn b-add" id="addWholeBtn">🪣 1 いれる</button>
+          <button class="btn b-sub" id="subWholeBtn">🗑️ 1 すてる</button>
+          <button class="btn b-prob" id="probBtn">📝 もんだいを だす</button>
+          <button class="btn b-reset" id="resetBtn">🔄 リセット</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="fx"></div>
+<div class="confetti-layer" id="confetti"></div>
+
+<script>
+(function(){
+  const SEG = 34, BOTTOM = 360, CUPS = 4, MAX = CUPS * 10;
+  const PATH = 'M36,20 L146,20 L146,344 Q146,360 130,360 L52,360 Q36,360 36,344 Z';
+
+  let n = 0;                 // 水の量（0.1が何こ）
+  let busy = false;
+  let problem = null;        // {type:'add'|'sub', a, b, ans, solved}
+
+  const $ = id => document.getElementById(id);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const fmt = t => (t % 10 === 0) ? String(t / 10) : (t / 10).toFixed(1);
+  const rand = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+
+  // ---- build big cups ----
+  const bigCups = $('bigCups');
+  let html = '';
+  for (let c = 0; c < CUPS; c++) {
+    let ticks = '';
+    for (let i = 1; i <= 10; i++) {
+      const y = BOTTOM - i * SEG;
+      const whole = i === 10;
+      ticks += `<line class="tick-line" x1="36" x2="22" y1="${y}" y2="${y}"/>`;
+      if (whole) ticks += `<text class="tick-label whole" x="16" y="${y + 6}" text-anchor="end">${c + 1}</text>`;
+    }
+    html += `
+      <div class="cup-block">
+        <svg class="cup" viewBox="0 0 156 400">
+          <defs>
+            <linearGradient id="wg${c}" gradientUnits="userSpaceOnUse" x1="0" y1="20" x2="0" y2="360">
+              <stop offset="0%" stop-color="#82E0FF"/><stop offset="100%" stop-color="#1E9BE0"/>
+            </linearGradient>
+            <clipPath id="clip${c}"><path d="${PATH}"/></clipPath>
+          </defs>
+          <g clip-path="url(#clip${c})">
+            <rect class="water" x="36" width="110" y="360" height="0" fill="url(#wg${c})"/>
+            <ellipse class="wave" cx="91" cy="360" rx="52" ry="5" fill="#EAFCFF" opacity="0"/>
+            <text class="fullmark" x="91" y="235" text-anchor="middle">1</text>
+          </g>
+          ${ticks}
+          <path class="cup-outline" d="${PATH}"/>
+        </svg>
+        <div class="cap">${c + 1}つめの ます</div>
+      </div>`;
+  }
+  bigCups.innerHTML = html;
+  const cups = [...bigCups.querySelectorAll('.cup-block')].map(el => ({
+    el, svg: el.querySelector('svg'),
+    water: el.querySelector('.water'), wave: el.querySelector('.wave'), mark: el.querySelector('.fullmark')
+  }));
+
+  const numEl = $('num'), cntEl = $('cnt'), msgEl = $('msg');
+  const exprEl = $('expr'), hintEl = $('hint'), dotsEl = $('dots');
+  const addBtn = $('addBtn'), subBtn = $('subBtn');
+  const addWholeBtn = $('addWholeBtn'), subWholeBtn = $('subWholeBtn');
+  const addHalfBtn = $('addHalfBtn'), subHalfBtn = $('subHalfBtn');
+  const probBtn = $('probBtn'), resetBtn = $('resetBtn');
+
+  function setMsg(text, good) {
+    msgEl.textContent = text;
+    msgEl.classList.toggle('good', !!good);
+  }
+
+  // ---- render ----
+  function render() {
+    cups.forEach((cp, c) => {
+      const lv = clamp(n - c * 10, 0, 10);
+      const y = BOTTOM - lv * SEG;
+      cp.water.setAttribute('y', y);
+      cp.water.setAttribute('height', lv * SEG);
+      cp.wave.setAttribute('cy', y);
+      cp.wave.setAttribute('opacity', lv > 0 ? 0.65 : 0);
+      cp.mark.classList.toggle('show', lv === 10);
+    });
+    numEl.textContent = fmt(n);
+    numEl.classList.add('bump');
+    setTimeout(() => numEl.classList.remove('bump'), 160);
+    cntEl.textContent = n;
+
+    addBtn.disabled = busy || n >= MAX;
+    subBtn.disabled = busy || n <= 0;
+    addHalfBtn.disabled = busy || n > MAX - 5;
+    subHalfBtn.disabled = busy || n < 5;
+    addWholeBtn.disabled = busy || n > MAX - 10;
+    subWholeBtn.disabled = busy || n < 10;
+    probBtn.disabled = busy;
+    resetBtn.disabled = busy;
+  }
+
+  function renderProblem() {
+    if (!problem) {
+      exprEl.textContent = '「もんだいを だす」を おしてね';
+      hintEl.textContent = '';
+      dotsEl.innerHTML = '';
+      return;
+    }
+    const sym = problem.type === 'add' ? '＋' : '−';
+    const done = problem.type === 'add' ? n - problem.a : problem.a - n;
+    const prog = clamp(done, 0, problem.b);
+    const solved = prog === problem.b && done === problem.b;
+
+    exprEl.innerHTML = `${fmt(problem.a)} ${sym} ${fmt(problem.b)} ＝ ` +
+      (solved ? `<span class="q" style="color:#2BA86B">${fmt(problem.ans)}</span>` : `<span class="q">？</span>`);
+    hintEl.textContent = `0.1を ${problem.b}こ ${problem.type === 'add' ? 'いれよう' : 'すてよう'}（いま ${prog}こ）`;
+
+    let d = '';
+    for (let i = 0; i < problem.b; i++) d += `<span class="dot${i < prog ? ' on' : ''}"></span>`;
+    dotsEl.innerHTML = d;
+
+    if (solved && !problem.solved) {
+      problem.solved = true;
+      setMsg(`できた！ こたえは ${fmt(problem.ans)}（0.1が ${problem.ans}こ）`, true);
+      confetti();
+    } else if (!solved) {
+      problem.solved = false;
+    }
+  }
+
+  // ---- animations ----
+  function flyDrops(count, targetCup) {
+    const t = cups[targetCup].svg.getBoundingClientRect();
+    const sx = t.left + t.width * 0.62, sy = Math.max(4, t.top - 6);
+    const fx = $('fx');
+    for (let i = 0; i < count; i++) {
+      const d = document.createElement('div');
+      d.className = 'drop';
+      d.style.left = (sx + (Math.random() * 20 - 10)) + 'px'; d.style.top = sy + 'px';
+      fx.appendChild(d);
+      const a = d.animate([
+        { transform: 'translateY(0) scale(.7)', opacity: 1 },
+        { transform: `translateY(${t.height * 0.4}px) scale(1)`, opacity: 0.9 }
+      ], { duration: 520, delay: i * 45, easing: 'ease-in', fill: 'both' });
+      a.onfinish = () => d.remove();
+    }
+  }
+
+  function drips(cupIndex) {
+    const t = cups[cupIndex].svg.getBoundingClientRect();
+    const fx = $('fx');
+    for (let i = 0; i < 5; i++) {
+      const d = document.createElement('div');
+      d.className = 'drop';
+      d.style.left = (t.left + t.width * (0.45 + Math.random() * 0.25)) + 'px';
+      d.style.top = (t.bottom - 20) + 'px';
+      fx.appendChild(d);
+      const a = d.animate([
+        { transform: 'translateY(0) scale(.7)', opacity: 1 },
+        { transform: 'translateY(70px) scale(1)', opacity: 0 }
+      ], { duration: 600, delay: i * 40, easing: 'ease-in', fill: 'both' });
+      a.onfinish = () => d.remove();
+    }
+  }
+
+  function confetti() {
+    const layer = $('confetti');
+    const colors = ['#FF6B9D', '#FFD166', '#4FC3F7', '#7ED957', '#B388FF'];
+    for (let i = 0; i < 36; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.background = colors[Math.floor(Math.random() * colors.length)];
+      c.style.animationDuration = (1.6 + Math.random() * 1.2) + 's';
+      c.style.animationDelay = Math.random() * 0.4 + 's';
+      c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      layer.appendChild(c);
+      setTimeout(() => c.remove(), 3300);
+    }
+  }
+
+  // ---- operations ----
+  async function addTenth() {
+    if (busy || n >= MAX) return;
+    busy = true; render();
+    const target = Math.floor(n / 10);
+    flyDrops(6, target);
+    await sleep(340);
+    n += 1;
+    render(); renderProblemAndMsg('add', 1);
+    await sleep(280);
+    await sleep(320);
+    busy = false; render();
+  }
+
+  async function subTenth() {
+    if (busy || n <= 0) return;
+    busy = true; render();
+    const cupIdx = Math.ceil(n / 10) - 1;
+    drips(cupIdx);
+    n -= 1;
+    render(); renderProblemAndMsg('sub', 1);
+    await sleep(600);
+    busy = false; render();
+  }
+
+  async function addAmount(amt) {
+    if (busy || n > MAX - amt) return;
+    busy = true; render();
+    const target = Math.floor(n / 10);
+    flyDrops(amt, target);
+    await sleep(amt >= 10 ? 380 : 360);
+    n += amt;
+    render(); renderProblemAndMsg('add', amt);
+    await sleep(250);
+    await sleep(380);
+    busy = false; render();
+  }
+
+  async function subAmount(amt) {
+    if (busy || n < amt) return;
+    busy = true; render();
+    drips(Math.ceil(n / 10) - 1);
+    n -= amt;
+    render(); renderProblemAndMsg('sub', amt);
+    await sleep(650);
+    busy = false; render();
+  }
+
+  let lastPrev = 0;
+  function renderProblemAndMsg(op, amt) {
+    const prev = op === 'add' ? n - amt : n + amt;
+    lastPrev = prev;
+    const wasSolved = problem && problem.solved;
+    renderProblem();
+    const justSolved = problem && problem.solved && !wasSolved;
+    if (justSolved) return;   // message already set by renderProblem
+
+    if (op === 'add' && amt === 1 && n % 10 === 0) {
+      setMsg(`0.1が 10こ あつまって 1 に なったよ！${n < MAX ? ' つぎの ますに いれよう' : ''}`);
+    } else if (op === 'add' && amt === 5) {
+      if (Math.floor(n / 10) > Math.floor(prev / 10)) setMsg('0.1が 10こ あつまって 1 に なったよ！');
+      else setMsg('0.5は 0.1が 5こ ぶんの 水だよ');
+    } else if (op === 'sub' && amt === 5) {
+      const r = prev % 10;
+      if (r !== 0 && r < 5) setMsg('この ますだけでは たりないから、まえの ますの 水からも ひくよ');
+      else if (r === 0) setMsg('1は 0.1が 10こ。5こ ひくと 5こ のこるよ');
+      else setMsg('0.5は 0.1が 5こ ぶんの 水だよ');
+    } else if (op === 'add' && amt === 10) {
+      setMsg('1は 0.1が 10こ ぶんの 水だよ');
+    } else if (op === 'sub' && amt === 1 && prev % 10 === 0) {
+      setMsg('1は 0.1が 10こ。1こ ひくと 0.1が 9こ だよ');
+    } else if (op === 'sub' && amt === 1 && prev % 10 === 1 && n > 0) {
+      setMsg('この ますが からに なったよ。まえの ますの 水から ひこう');
+    } else if (op === 'sub' && amt === 10) {
+      setMsg('1ますぶん（0.1が 10こ）を ひいたよ');
+    } else if (!problem) {
+      const sym = op === 'add' ? '＋' : '−';
+      setMsg(`${fmt(prev)} ${sym} ${fmt(amt)} ＝ ${fmt(n)}`);
+    } else {
+      setMsg('0.1が 10こで 1 になるよ');
+    }
+  }
+
+  // ---- problems ----
+  function newProblem() {
+    for (let t = 0; t < 60; t++) {
+      if (Math.random() < 0.5) {
+        const a = rand(2, 29), b = rand(2, 19);
+        if (a + b <= MAX && ((a % 10) + (b % 10) >= 10 || t > 40)) return { type: 'add', a, b, ans: a + b };
+      } else {
+        const a = rand(11, 39), b = rand(2, a - 1);
+        if (b <= 19 && ((a % 10) < (b % 10) || t > 40)) return { type: 'sub', a, b, ans: a - b };
+      }
+    }
+    return { type: 'add', a: 7, b: 5, ans: 12 };
+  }
+
+  async function startProblem() {
+    if (busy) return;
+    problem = newProblem();
+    problem.solved = false;
+    n = problem.a;
+    render();
+    renderProblem();
+    const sym = problem.type === 'add' ? 'たす' : 'ひく';
+    setMsg(`はじめの 水は ${fmt(problem.a)}。0.1を ${problem.b}こ ${sym} と どうなるかな？`);
+  }
+
+  function reset() {
+    if (busy) return;
+    n = 0; problem = null;
+    render(); renderProblem();
+    setMsg('0.1が 10こ あつまると 1 だよ');
+  }
+
+  addBtn.addEventListener('click', addTenth);
+  subBtn.addEventListener('click', subTenth);
+  addHalfBtn.addEventListener('click', () => addAmount(5));
+  subHalfBtn.addEventListener('click', () => subAmount(5));
+  addWholeBtn.addEventListener('click', () => addAmount(10));
+  subWholeBtn.addEventListener('click', () => subAmount(10));
+  probBtn.addEventListener('click', startProblem);
+  resetBtn.addEventListener('click', reset);
+  render();
+  renderProblem();
+})();
+</script>
+</body>
+</html>
