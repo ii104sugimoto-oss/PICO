@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <base target="_top">
-<title>かけ算の ひっ算マスター（てがき）</title>
+<title>ひっ算</title>
 <style>
 :root{
   --page:#E8F2EE; --paper:#FBFDFC; --grid:#CFE5DF; --grid2:#9DBFB6;
@@ -15,11 +15,11 @@
   --carry:#D6336C; --carry-bg:#FFE0EC;
   --ok:#1F8A52; --ok-bg:#DDF5E8; --hint:#9A4A00; --hint-bg:#FFF1CC;
   --mark:#FFE680;
-  --cell:clamp(3.4rem,min(12.5vh,12vw),7rem);
+  --cell:clamp(4rem,min(14.5vh,14vw),9rem);
   --sign:calc(var(--cell)*.55);
   --font:"UD Digi Kyokasho N-R","UD デジタル 教科書体 N-R","BIZ UDPGothic","Hiragino Maru Gothic ProN","Yu Gothic UI","Meiryo",system-ui,sans-serif;
 }
-@media (orientation:portrait){:root{--cell:clamp(3.4rem,min(9vh,15vw),7rem)}}
+@media (orientation:portrait){:root{--cell:clamp(4rem,min(9.2vh,16vw),9rem)}}
 *{box-sizing:border-box}
 html{font-size:16px;-webkit-text-size-adjust:100%}
 html.big{font-size:19px}
@@ -34,22 +34,20 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
 /* ---------- 全体レイアウト（10.1〜10.5インチ・横向きを基本に、縦向きにも対応） ---------- */
 .app{
   height:100vh;height:100dvh;padding:.5rem;display:grid;gap:.5rem;
-  grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);
-  grid-template-rows:auto minmax(0,1fr);
-  grid-template-areas:"head head" "paper guide";
+  grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);
+  grid-template-rows:minmax(0,1fr);
+  grid-template-areas:"paper guide";
 }
 @media (orientation:portrait){
   .app{
     height:auto;min-height:100vh;min-height:100dvh;
-    grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;
-    grid-template-areas:"head" "paper" "guide";
+    grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;
+    grid-template-areas:"paper" "guide";
   }
 }
-.a-head{grid-area:head}.a-paper{grid-area:paper;min-height:0}.a-guide{grid-area:guide;min-height:0}
-.head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.3rem .8rem}
-.head h1{margin:0;font-size:1.25rem}
-.head-tools{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
-.chip{border:2.5px solid var(--ink);background:#fff;border-radius:999px;padding:.2rem .7rem;font-size:1rem;font-weight:700;min-height:2.4rem}
+.a-paper{grid-area:paper;min-height:0}.a-guide{grid-area:guide;min-height:0}
+.head-tools{display:flex;flex-wrap:wrap;gap:.3rem;align-items:center}
+.chip{border:2.5px solid var(--ink);background:#fff;border-radius:999px;padding:.15rem .6rem;font-size:.95rem;font-weight:700;min-height:2.3rem}
 .chip[aria-pressed="true"]{background:var(--ink);color:#fff}
 .chip.tool{border-color:var(--ink-soft);color:var(--ink-soft);font-size:.9rem}
 
@@ -66,7 +64,7 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
 #ink{position:absolute;left:0;top:0;width:100%;height:100%;z-index:5;touch-action:none;border-radius:1.1rem;cursor:crosshair}
 #ink.off{pointer-events:none}
 .board{display:grid;justify-content:center;column-gap:.3rem;
-  grid-template-rows:auto calc(var(--cell)*.66) var(--cell) var(--cell) .55rem var(--cell)}
+  grid-template-rows:auto calc(var(--cell)*.85) var(--cell) var(--cell) .55rem var(--cell)}
 .cell{position:relative;display:flex;align-items:center;justify-content:center;
   font-size:calc(var(--cell)*.74);font-weight:700;line-height:1;border-radius:.8rem;
   transition:background .25s,opacity .25s,box-shadow .25s}
@@ -105,7 +103,7 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
 .memo{display:flex;flex-direction:column;gap:.35rem;align-items:center;z-index:1}
 .memo-row{display:flex;align-items:center;gap:.5rem}
 .memo-row .eq{font-size:calc(var(--cell)*.5);font-weight:700;white-space:nowrap}
-.memo-box{position:relative;width:calc(var(--cell)*1.9);height:calc(var(--cell)*.95);
+.memo-box{position:relative;width:calc(var(--cell)*2.4);height:calc(var(--cell)*1.1);
   border:.2rem dashed var(--grid2);border-radius:.8rem;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center}
 .memo-box .ghost{display:none;position:absolute;font-size:calc(var(--cell)*.22);font-weight:700;color:var(--ink-soft)}
 .memo-box.target{border-color:var(--mark);background:#FFFBE0;border-color:#E0B400;animation:blink 1.4s ease-in-out infinite}
@@ -133,6 +131,7 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
 .detail h3{margin:0 0 .3rem;font-size:1.1rem;color:var(--ones)}
 .detail p{margin:.25rem 0}
 .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem}
+@media (orientation:portrait){.tools{grid-template-columns:repeat(6,1fr)}.tbtn{font-size:.8rem}.tbtn .ic{font-size:1.2rem}}
 .tbtn{font-size:1.1rem;font-weight:700;min-height:3.6rem;border-radius:1rem;background:#fff;border:3px solid var(--ink);box-shadow:0 .22rem 0 var(--ink);padding:.2rem .3rem;line-height:1.2}
 .tbtn:active{transform:translateY(.18rem);box-shadow:0 .04rem 0 var(--ink)}
 .tbtn[aria-pressed="true"]{background:var(--ink);color:#fff}
@@ -167,10 +166,6 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
 <body>
 <noscript>JavaScriptを有効にしてください。</noscript>
 <div class="app">
-  <header class="a-head head">
-    <h1>かけ算の ひっ算マスター</h1>
-    <div class="head-tools" id="chips"></div>
-  </header>
 
   <section class="a-paper">
     <div class="card" id="paper" aria-label="ひっ算ようし。ゆびやペンで 数字を書こう">
@@ -181,6 +176,7 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
   </section>
 
   <section class="a-guide">
+    <div class="head-tools" id="chips"></div>
     <div class="panel now" id="now"></div>
     <div class="panel react idle" id="react" aria-live="polite"></div>
     <div class="panel detail" id="detail" hidden></div>
@@ -284,6 +280,10 @@ var HW = (function(){
     return r;
   }
   function prep(strokes){
+    strokes=strokes.map(function(st){
+      var o=[];st.forEach(function(p){var l=o[o.length-1];if(!l||Math.abs(p.x-l.x)+Math.abs(p.y-l.y)>=0.8)o.push(p);});
+      return o;
+    });
     var f=flatten(strokes);
     if(f.length<2) return null;
     var r=resample(f,N);
@@ -319,13 +319,17 @@ var HW = (function(){
     var w=maxx-minx,h=maxy-miny; if(h<1e-6) return 3;
     return Math.min(w/h,1.5);
   }
-  var AR_W=0.9;
+  var AR_W=0;
   var TEMPLATES=[];
   Object.keys(SHAPES).forEach(function(d){
     SHAPES[d].forEach(function(shape){
-      var strokes=shape.map(function(s){return s.map(function(p){return {x:p[0],y:p[1]};});});
-      var t=prep(strokes);
-      if(t) TEMPLATES.push({d:parseInt(d,10),pts:t,ar:aspect(strokes)});
+      var base=shape.map(function(s){return s.map(function(p){return {x:p[0],y:p[1]};});});
+      // 書き方のちがい（ななめ・細い・太い）も見本にする
+      [[0,1],[0.22,1],[-0.22,1],[0,0.72],[0,1.3]].forEach(function(v){
+        var strokes=base.map(function(s){return s.map(function(p){return {x:(p.x-50+v[0]*(p.y-50))*v[1]+50,y:p.y};});});
+        var t=prep(strokes);
+        if(t) TEMPLATES.push({d:parseInt(d,10),pts:t,ar:aspect(strokes)});
+      });
     });
   });
 
@@ -387,7 +391,8 @@ var RING={mulOnes:'o',writeOnes:'o',writeCarry:'o',mulTens:'t',writeTens:'t'};
 var CIRC=['①','②','③','④','⑤','⑥'];
 var UNREAD_MSG='うまく読めなかったよ。もう一度、ゆっくり書いてみよう。';
 // 手書き認識のしきい値（実機で様子を見て調整できます）
-var TH={maxDist:2.7,accept:1.2,reject:1.35,dust:0.18};
+var TH={maxDist:2.6,accept:1.3,rank:3,dust:0.15};
+var RELAX=false; // 同じ場所で2回「読めなかった」が続いたら、さらに甘くする
 
 var M=null,S=null;
 var stats={unread:0}; CATS.forEach(function(c){stats[c]=0;});
@@ -507,7 +512,7 @@ function renderReact(){
   var f=S.fb,el=$('#react'),id=cur();
   if(!f){el.className='panel react idle';el.textContent='ゆっくり 書いてね。まちがえても だいじょうぶ！';}
   else{el.className='panel react '+f.kind;el.textContent=(f.kind==='ok'?'◎ ':'💡 ')+f.text;}
-  if(WRITE[id]&&(S.unread[id]||0)>=3){
+  if(WRITE[id]&&(S.unread[id]||0)>=2){
     var b=document.createElement('button');
     b.className='btn small';b.setAttribute('data-act','teacherOk');b.textContent='先生が「OK」にする';
     el.appendChild(b);
@@ -671,8 +676,8 @@ function onPenDown(p){
   T.forEach(function(t){
     if(!t.el)return;
     var rc=relRect(t.el);
-    if(inRect({cx:px.x,cy:px.y},rc,0.3)) hit=t;
-    if(Math.hypot(px.x-(rc.x+rc.w/2),px.y-(rc.y+rc.h/2))<cellPx*1.8) near=true;
+    if(inRect({cx:px.x,cy:px.y},rc,0.5)) hit=t;
+    if(Math.hypot(px.x-(rc.x+rc.w/2),px.y-(rc.y+rc.h/2))<cellPx*2.6) near=true;
   });
   if(hit) hit.el.classList.add('touching');
   else if(!near&&T[0]&&T[0].el) showHere(T[0].el,'ここやで！');
@@ -767,8 +772,12 @@ function mkRead(r){
   var top=r.cand[0];
   var o={top:top.d,dist:top.dist,conf:top.dist<=TH.maxDist};
   function idx(e){for(var i=0;i<r.cand.length;i++) if(r.cand[i].d===e) return i;return 99;}
-  o.accepts=function(e){var i=idx(e);return i<=2&&r.cand[i].dist<=top.dist*TH.accept&&r.cand[i].dist<=TH.maxDist*1.15;};
-  o.rejects=function(e){var i=idx(e);return o.conf&&(i>=3||r.cand[i].dist>top.dist*TH.reject);};
+  // 書こうとしている数字（e）らしければ、少しくずれていても「合っている」とみなす
+  o.accepts=function(e){
+    var i=idx(e);if(i>=99)return false;
+    var ratio=RELAX?1.8:TH.accept,rank=RELAX?4:TH.rank,cap=TH.maxDist*(RELAX?1.5:1.2);
+    return i<=rank&&r.cand[i].dist<=top.dist*ratio&&r.cand[i].dist<=cap;
+  };
   return o;
 }
 function clusterize(objs){
@@ -801,23 +810,22 @@ function judgeMemo(id,objs,force){
   var tg=targets(id)[0],rect=relRect(tg.el),cr=clusterize(objs),cl=cr.cl;
   if(!cl.length) return {act:'none',dust:cr.dust};
   var inside=[],outside=[];
-  cl.forEach(function(c){(inRect(c.b,rect,0.25)?inside:outside).push(c);});
+  cl.forEach(function(c){(inRect(c.b,rect,0.4)?inside:outside).push(c);});
   if(!inside.length){
     return {act:'place',msg:'答えは、ここに書こう！',point:tg.el,remove:flat(outside),dust:cr.dust,cat:null};
   }
   var stray=flat(outside);
-  var bad=inside.filter(function(c){return !c.read||!c.read.conf;});
-  if(bad.length) return {act:'unread',remove:flat(inside),dust:cr.dust.concat(stray)};
-  var E=String(expected(id)),digs=inside.map(function(c){return c.read;}),i;
+  var stray=flat(outside);
+  var E=String(expected(id)),i;
+  var noRead=inside.filter(function(c){return !c.read;});
+  if(noRead.length) return {act:'unread',remove:flat(inside),dust:cr.dust.concat(stray)};
+  var digs=inside.map(function(c){return c.read;});
   var allOk=digs.length<=E.length;
   for(i=0;i<digs.length&&i<E.length;i++) if(!digs[i].accepts(parseInt(E[i],10))) allOk=false;
   if(allOk&&digs.length===E.length) return {act:'solve',dust:cr.dust.concat(stray)};
   if(allOk&&digs.length<E.length&&!force) return {act:'wait',dust:cr.dust.concat(stray)};
-  var amb=false;
-  if(digs.length===E.length){
-    for(i=0;i<digs.length;i++) if(!digs[i].accepts(parseInt(E[i],10))&&!digs[i].rejects(parseInt(E[i],10))) amb=true;
-    if(amb) return {act:'unread',remove:flat(inside),dust:cr.dust.concat(stray)};
-  }
+  var unsure=digs.some(function(d,k){return !d.conf&&!(k<E.length&&d.accepts(parseInt(E[k],10)));});
+  if(unsure) return {act:'unread',remove:flat(inside),dust:cr.dust.concat(stray)};
   var v=parseInt(digs.map(function(d){return d.top;}).join(''),10);
   var h=memoHint(id,v);
   return {act:'wrong',cat:CAT_OF[id],detail:(id==='mulOnes'?M.o:M.t)+'×'+M.b+'に「'+v+'」と読んだ'+(h.add?'（たし算かも）':''),
@@ -865,14 +873,13 @@ function boardWrong(id,c,T,missing){
 function judgeBoard(id,objs){
   var T=targets(id),cr=clusterize(objs),cl=cr.cl;
   if(!cl.length) return {act:'none',dust:cr.dust};
-  var un=cl.filter(function(c){return !c.read||!c.read.conf;});
-  if(un.length) return {act:'unread',remove:flat(un),dust:cr.dust};
+  if(cl.some(function(c){return !c.read;})) return {act:'unread',remove:flat(cl),dust:cr.dust};
   T.forEach(function(t){t.rect=relRect(t.el);});
   var byT={};
   cl.forEach(function(c){
     var best=null,bd=1e9;
     T.forEach(function(t){
-      if(inRect(c.b,t.rect,0.3)){
+      if(inRect(c.b,t.rect,0.5)){
         var dd=Math.hypot(c.b.cx-(t.rect.x+t.rect.w/2),c.b.cy-(t.rect.y+t.rect.h/2));
         if(dd<bd){bd=dd;best=t;}
       }
@@ -881,14 +888,14 @@ function judgeBoard(id,objs){
     if(best){(byT[best.key]=byT[best.key]||[]).push(c);}
   });
   cl.forEach(function(c){
-    if(!c.tgt){c.bad={kind:'place'};return;}
+    if(!c.tgt){if(!c.read.conf)c.unr=true;else c.bad={kind:'place'};return;}
     if(byT[c.tgt.key].length>1){c.bad={kind:'multi'};return;}
     if(c.read.accepts(c.tgt.val)){c.good=true;return;}
-    if(c.read.rejects(c.tgt.val)){c.bad={kind:'digit'};return;}
-    c.amb=true;
+    if(!c.read.conf){c.unr=true;return;}
+    c.bad={kind:'digit'};
   });
-  var amb=cl.filter(function(c){return c.amb;});
-  if(amb.length) return {act:'unread',remove:flat(amb),dust:cr.dust};
+  var unr=cl.filter(function(c){return c.unr;});
+  if(unr.length) return {act:'unread',remove:flat(unr),dust:cr.dust};
   var bads=cl.filter(function(c){return c.bad;}),goods=cl.filter(function(c){return c.good;}),cov={};
   goods.forEach(function(c){cov[c.tgt.key]=true;});
   var missing=T.filter(function(t){return !cov[t.key];});
@@ -961,6 +968,7 @@ function evaluate(force){
   var objs=S.ink.filter(function(s){return s.step===S.idx&&!s.bad;});
   if(!objs.length)return;
   layoutMeasure();
+  RELAX=(S.unread[id]||0)>=2;
   var res=MEMO[id]?judgeMemo(id,objs,force):judgeBoard(id,objs);
   applyResult(id,res);
 }
@@ -1004,7 +1012,7 @@ function teacherHTML(){
   h+='<li>十の位：'+m.t+'×'+m.b+'＝'+m.q+'</li>';
   h+='<li>'+(m.pT>0?'繰り上がりの'+m.pT+'を合わせる：'+m.q+'＋'+m.pT+'＝'+m.s:'そのまま'+m.s)+'を答えの十の位に書く'+(m.sT>0?'（最後の位なので'+m.s+'をそのまま左に書く）':'')+'</li>';
   h+='<li>答え：'+m.ans+'</li></ol>';
-  h+='<h2>手書き数字の読み取りについて</h2><p>書いた線をこの端末の中だけで読み取っています（点の並びを、0〜9の見本と比べる方法。外部サービスは使いません）。書いた場所が、マス目のどこにあたるかも見ています。確かでないときは、まちがいと決めつけず「うまく読めなかったよ」と案内し、書き直してもらいます。3回続けて読めないときは、「先生が OK にする」ボタンが出ます。</p>';
+  h+='<h2>手書き数字の読み取りについて</h2><p>書いた線をこの端末の中だけで読み取っています（点の並びを、0〜9の見本と比べる方法。外部サービスは使いません）。書いた場所が、マス目のどこにあたるかも見ています。確かでないときは、まちがいと決めつけず「うまく読めなかったよ」と案内し、書き直してもらいます。同じ場所で2回続けて読めないと、読み取りをさらに甘くして、「先生が OK にする」ボタンも出します。</p>';
   h+='<h2>つまずきメモ（この画面を開いている間だけ）</h2><div class="cats">';
   CATS.forEach(function(c){h+='<span class="cat'+(stats[c]>0?' has':'')+'">'+c+(stats[c]>0?' ×'+stats[c]:'')+'</span>';});
   h+='<span class="cat'+(stats.unread>0?' has':'')+'">読めなかった'+(stats.unread>0?' ×'+stats.unread:'')+'</span></div><ul class="mlog">';
@@ -1074,4 +1082,3 @@ if(window.google&&google.script&&google.script.run){
 </script>
 </body>
 </html>
-
