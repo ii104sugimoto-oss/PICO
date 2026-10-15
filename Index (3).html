@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<base target="_top">
+<title>かけ算の ひっ算マスター（てがき）</title>
+<style>
+:root{
+  --page:#E8F2EE; --paper:#FBFDFC; --grid:#CFE5DF; --grid2:#9DBFB6;
+  --ink:#22304A; --ink-soft:#5F6F88; --pencil:#2A2F45;
+  --ones:#2468E0; --ones-bg:#DCE8FF;
+  --tens:#E8821A; --tens-bg:#FFE9CF;
+  --huns:#1F9D5A; --huns-bg:#D6F2E3;
+  --carry:#D6336C; --carry-bg:#FFE0EC;
+  --ok:#1F8A52; --ok-bg:#DDF5E8; --hint:#9A4A00; --hint-bg:#FFF1CC;
+  --mark:#FFE680;
+  --cell:clamp(3.4rem,min(12.5vh,12vw),7rem);
+  --sign:calc(var(--cell)*.55);
+  --font:"UD Digi Kyokasho N-R","UD デジタル 教科書体 N-R","BIZ UDPGothic","Hiragino Maru Gothic ProN","Yu Gothic UI","Meiryo",system-ui,sans-serif;
+}
+@media (orientation:portrait){:root{--cell:clamp(3.4rem,min(9vh,15vw),7rem)}}
+*{box-sizing:border-box}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+html.big{font-size:19px}
+body{
+  margin:0;background:var(--page);color:var(--ink);font-family:var(--font);line-height:1.5;
+  overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+button,select{font-family:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
+
+/* ---------- 全体レイアウト（10.1〜10.5インチ・横向きを基本に、縦向きにも対応） ---------- */
+.app{
+  height:100vh;height:100dvh;padding:.5rem;display:grid;gap:.5rem;
+  grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr);
+  grid-template-areas:"head head" "paper guide";
+}
+@media (orientation:portrait){
+  .app{
+    height:auto;min-height:100vh;min-height:100dvh;
+    grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;
+    grid-template-areas:"head" "paper" "guide";
+  }
+}
+.a-head{grid-area:head}.a-paper{grid-area:paper;min-height:0}.a-guide{grid-area:guide;min-height:0}
+.head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.3rem .8rem}
+.head h1{margin:0;font-size:1.25rem}
+.head-tools{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
+.chip{border:2.5px solid var(--ink);background:#fff;border-radius:999px;padding:.2rem .7rem;font-size:1rem;font-weight:700;min-height:2.4rem}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff}
+.chip.tool{border-color:var(--ink-soft);color:var(--ink-soft);font-size:.9rem}
+
+/* ---------- 筆算用紙（方眼ノート） ---------- */
+.card{
+  position:relative;height:100%;
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:1.6rem 1.6rem;
+  border:3px solid var(--ink);border-radius:1.2rem;padding:.7rem .5rem;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;
+}
+@media (orientation:portrait){.card{height:auto}}
+#ink{position:absolute;left:0;top:0;width:100%;height:100%;z-index:5;touch-action:none;border-radius:1.1rem;cursor:crosshair}
+#ink.off{pointer-events:none}
+.board{display:grid;justify-content:center;column-gap:.3rem;
+  grid-template-rows:auto calc(var(--cell)*.66) var(--cell) var(--cell) .55rem var(--cell)}
+.cell{position:relative;display:flex;align-items:center;justify-content:center;
+  font-size:calc(var(--cell)*.74);font-weight:700;line-height:1;border-radius:.8rem;
+  transition:background .25s,opacity .25s,box-shadow .25s}
+.p-o{color:var(--ones)}.p-t{color:var(--tens)}.p-h{color:var(--huns)}
+.sign,.mult{color:var(--ink)}
+.sign{font-size:calc(var(--cell)*.6)}
+.rule{align-self:center;height:.38rem;background:var(--ink);border-radius:.2rem}
+.dim{opacity:.3}
+.ring.p-o{background:var(--ones-bg);box-shadow:0 0 0 .22rem var(--ones)}
+.ring.p-t{background:var(--tens-bg);box-shadow:0 0 0 .22rem var(--tens)}
+.mark{background:var(--mark);box-shadow:0 0 0 .22rem #E0B400}
+.hdr{font-size:.85rem;font-weight:700;border-radius:.7rem;padding:.15rem .1rem;margin-bottom:.3rem;white-space:nowrap;position:relative;opacity:.5}
+.hdr.p-o{background:var(--ones-bg)}.hdr.p-t{background:var(--tens-bg)}.hdr.p-h{background:var(--huns-bg)}
+.hdr.on{opacity:1;color:#fff}.hdr.on.p-o{background:var(--ones)}.hdr.on.p-t{background:var(--tens)}.hdr.on.p-h{background:var(--huns)}
+.hdr .arr{position:absolute;right:-.7rem;top:50%;transform:translateY(-50%);font-size:1rem;color:var(--ink-soft);opacity:.45}
+.hdr.on .arr{color:var(--tens);opacity:1}
+
+/* 書く場所（マス目） */
+.slot{border:.2rem dashed var(--grid2);background:rgba(255,255,255,.55)}
+.slot .ghost{display:none;font-size:calc(var(--cell)*.26);font-weight:700;opacity:.8;position:absolute;bottom:.15rem}
+.slot.target .ghost{display:block}
+.slot.target{animation:blink 1.4s ease-in-out infinite;background:rgba(255,255,255,.9)}
+.slot.target.p-o{border-color:var(--ones);color:var(--ones)}
+.slot.target.p-t{border-color:var(--tens);color:var(--tens)}
+.slot.target.p-h{border-color:var(--huns);color:var(--huns)}
+.slot.carry-slot{border-color:#E6B5C9;border-radius:.6rem}
+.slot.carry-slot.target{border-color:var(--carry);color:var(--carry);background:var(--carry-bg)}
+.slot.carry-slot .ghost{bottom:auto;font-size:calc(var(--cell)*.2)}
+.slot.touching{box-shadow:0 0 0 .25rem #7BD39F;background:var(--ok-bg)}
+.slot.used .tick{position:absolute;right:.1rem;top:-.1rem;font-size:calc(var(--cell)*.2);color:var(--ok);background:#fff;border-radius:.4rem;padding:0 .2rem}
+.final{animation:glow 1.6s ease-in-out infinite alternate}
+@keyframes blink{50%{box-shadow:0 0 0 .3rem rgba(255,230,128,.9)}}
+@keyframes glow{to{box-shadow:0 0 0 .25rem #FFD54A;background:#FFF6CC}}
+
+/* 計算メモ */
+.memo{display:flex;flex-direction:column;gap:.35rem;align-items:center;z-index:1}
+.memo-row{display:flex;align-items:center;gap:.5rem}
+.memo-row .eq{font-size:calc(var(--cell)*.5);font-weight:700;white-space:nowrap}
+.memo-box{position:relative;width:calc(var(--cell)*1.9);height:calc(var(--cell)*.95);
+  border:.2rem dashed var(--grid2);border-radius:.8rem;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center}
+.memo-box .ghost{display:none;position:absolute;font-size:calc(var(--cell)*.22);font-weight:700;color:var(--ink-soft)}
+.memo-box.target{border-color:var(--mark);background:#FFFBE0;border-color:#E0B400;animation:blink 1.4s ease-in-out infinite}
+.memo-box.target .ghost{display:block}
+.memo-box.touching{box-shadow:0 0 0 .25rem #7BD39F;background:var(--ok-bg)}
+.c-o{color:var(--ones);font-weight:700}.c-t{color:var(--tens);font-weight:700}.c-h{color:var(--huns);font-weight:700}.c-c{color:var(--carry);font-weight:700}
+
+/* ---------- 右側：今やること・反応・道具 ---------- */
+.a-guide{display:flex;flex-direction:column;gap:.5rem;overflow:auto;-webkit-overflow-scrolling:touch}
+.panel{background:#fff;border:3px solid var(--ink);border-radius:1.2rem;padding:.7rem .9rem}
+.now .dots{display:flex;gap:.35rem;margin-bottom:.35rem}
+.now .dot{width:.85rem;height:.85rem;border-radius:50%;border:2.5px solid var(--ink-soft);background:#fff}
+.now .dot.done{background:var(--ok);border-color:var(--ok)}
+.now .dot.cur{background:var(--mark);border-color:var(--ink);transform:scale(1.25)}
+.now-main{display:flex;align-items:center;gap:.6rem;font-size:2rem;font-weight:700;line-height:1.25}
+.now-main .num{flex:none;font-size:2.6rem;color:var(--ink)}
+.now-say{font-size:1.45rem;font-weight:700;margin:.25rem 0 0}
+.now-sub{font-size:1.05rem;color:var(--ink-soft);margin:.1rem 0 0}
+.react{min-height:4.6rem;display:flex;flex-direction:column;justify-content:center;gap:.4rem;font-size:1.2rem;font-weight:700}
+.react.ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.react.hint{background:var(--hint-bg);border-color:#E0A33A;color:var(--hint);animation:shake .4s}
+.react.idle{color:var(--ink-soft);font-weight:400}
+@keyframes shake{20%{transform:translateX(-.4rem)}50%{transform:translateX(.4rem)}80%{transform:translateX(-.2rem)}}
+.detail{font-size:1.05rem;border-color:var(--ones);background:#F4F8FF;max-height:14rem;overflow:auto}
+.detail h3{margin:0 0 .3rem;font-size:1.1rem;color:var(--ones)}
+.detail p{margin:.25rem 0}
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem}
+.tbtn{font-size:1.1rem;font-weight:700;min-height:3.6rem;border-radius:1rem;background:#fff;border:3px solid var(--ink);box-shadow:0 .22rem 0 var(--ink);padding:.2rem .3rem;line-height:1.2}
+.tbtn:active{transform:translateY(.18rem);box-shadow:0 .04rem 0 var(--ink)}
+.tbtn[aria-pressed="true"]{background:var(--ink);color:#fff}
+.tbtn .ic{display:block;font-size:1.4rem}
+.btn{font-size:1.2rem;font-weight:700;padding:.6rem 1rem;border-radius:1rem;background:var(--ones);color:#fff;border:3px solid var(--ink);box-shadow:0 .22rem 0 var(--ink)}
+.btn.small{font-size:.95rem;padding:.35rem .8rem;background:#fff;color:var(--ink);align-self:flex-start}
+.praise{font-size:1.15rem;font-weight:400;margin:.3rem 0 .5rem}
+
+/* ここやで */
+.here{position:fixed;z-index:60;pointer-events:none;display:flex;flex-direction:column;align-items:center;animation:hop .7s ease-in-out infinite}
+.here .bub{background:var(--carry);color:#fff;font-weight:700;font-size:1.4rem;padding:.25rem .9rem;border-radius:999px;border:3px solid #fff;box-shadow:0 .2rem .6rem rgba(0,0,0,.25);white-space:nowrap}
+.here .tip{font-size:1.8rem;line-height:1;color:var(--carry);text-shadow:0 0 .2rem #fff}
+@keyframes hop{50%{margin-top:-.5rem}}
+.here-target{outline:.35rem solid var(--carry);outline-offset:.1rem}
+
+/* きろく・かいせつ */
+.drawer{position:fixed;inset:0;z-index:70;background:rgba(34,48,74,.45);display:flex;justify-content:center;align-items:flex-start;padding:1rem;overflow:auto}
+.drawer[hidden]{display:none}
+.drawer .sheet{background:#fff;border:3px solid var(--ink);border-radius:1.2rem;max-width:44rem;width:100%;padding:1rem 1.2rem}
+.sheet h2{font-size:1.2rem;margin:.8rem 0 .4rem}
+.sheet h2:first-child{margin-top:0}
+.sheet p,.sheet li{margin:.25rem 0}
+.sheet ul{margin:0;padding-left:1.2rem}
+.cats{display:flex;flex-wrap:wrap;gap:.4rem}
+.cat{font-size:.95rem;padding:.2rem .7rem;border-radius:999px;background:#EEF2F6;color:var(--ink-soft);font-weight:700}
+.cat.has{background:var(--hint-bg);color:var(--hint)}
+.mlog{font-size:.95rem;color:var(--ink-soft)}
+.privacy{font-size:.85rem;color:var(--ink-soft)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<noscript>JavaScriptを有効にしてください。</noscript>
+<div class="app">
+  <header class="a-head head">
+    <h1>かけ算の ひっ算マスター</h1>
+    <div class="head-tools" id="chips"></div>
+  </header>
+
+  <section class="a-paper">
+    <div class="card" id="paper" aria-label="ひっ算ようし。ゆびやペンで 数字を書こう">
+      <div id="board"></div>
+      <div class="memo" id="memo"></div>
+      <canvas id="ink"></canvas>
+    </div>
+  </section>
+
+  <section class="a-guide">
+    <div class="panel now" id="now"></div>
+    <div class="panel react idle" id="react" aria-live="polite"></div>
+    <div class="panel detail" id="detail" hidden></div>
+    <div class="tools">
+      <button class="tbtn" data-act="pen" id="bPen" aria-pressed="true"><span class="ic">✏️</span>えんぴつ</button>
+      <button class="tbtn" data-act="eraser" id="bEraser" aria-pressed="false"><span class="ic">🧽</span>けしごむ</button>
+      <button class="tbtn" data-act="hint"><span class="ic">💡</span>ヒント</button>
+      <button class="tbtn" data-act="undo"><span class="ic">↩️</span>ひとつ もどる</button>
+      <button class="tbtn" data-act="clearStep"><span class="ic">🗑️</span>ぜんぶ けす</button>
+      <button class="tbtn" data-act="restart" id="bRestart"><span class="ic">🔄</span>はじめから</button>
+    </div>
+  </section>
+</div>
+
+<div class="drawer" id="drawer" hidden>
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/*HW-START*/
+var HW = (function(){
+  var N = 40;
+  function arc(cx,cy,rx,ry,a0,a1,n){
+    var r=[]; n=n||20;
+    for(var i=0;i<=n;i++){
+      var a=(a0+(a1-a0)*i/n)*Math.PI/180;
+      r.push([cx+rx*Math.cos(a), cy+ry*Math.sin(a)]);
+    }
+    return r;
+  }
+  function cat(){var r=[];for(var i=0;i<arguments.length;i++)r=r.concat(arguments[i]);return r;}
+
+  // 数字の見本（0〜100 の枠の中。書き方のちがいを複数用意）
+  var SHAPES = {
+    0:[ [arc(50,50,30,45,270,630,36)], [arc(50,50,22,45,270,630,36)], [arc(50,50,38,44,300,660,36)] ],
+    1:[ [[[50,5],[50,95]]], [[[30,28],[50,5],[50,95]]], [[[30,28],[50,5],[50,95]],[[28,95],[72,95]]] ],
+    2:[ [cat(arc(50,32,28,27,185,395,14),[[22,93],[80,93]])],
+        [cat(arc(50,32,28,27,185,395,14),[[22,93]])],
+        [cat(arc(50,32,28,27,185,395,14),[[22,93]]),[[20,93],[80,93]]] ],
+    3:[ [cat(arc(48,27,24,22,200,450,16),arc(48,71,28,23,270,520,18))],
+        [cat([[22,8],[75,8],[45,45]],arc(48,71,28,23,270,520,18))] ],
+    4:[ [[[62,5],[18,62],[85,62]],[[65,30],[65,95]]],
+        [[[28,5],[22,58],[82,58]],[[66,5],[66,95]]],
+        [[[62,5],[15,65],[88,65]],[[62,5],[62,95]]] ],
+    5:[ [cat([[75,8],[30,8],[26,46]],arc(46,68,28,24,250,520,18))],
+        [[[75,8],[30,8]],cat([[30,8],[26,46]],arc(46,68,28,24,250,520,18))] ],
+    6:[ [cat([[66,5],[40,28],[28,55]],arc(50,70,26,25,170,530,22))],
+        [cat([[62,5],[36,30],[24,62]],arc(50,70,26,25,180,540,22))] ],
+    7:[ [[[20,8],[80,8],[40,95]]],
+        [[[20,8],[80,8],[40,95]],[[32,52],[68,52]]],
+        [cat([[18,14],[30,6],[80,8]],[[55,50],[38,95]])] ],
+    8:[ [arc(50,27,21,21,0,360,18),arc(50,72,27,24,0,360,20)].map(function(s){return s;}),
+        [cat(arc(50,28,22,21,320,90,18),arc(50,72,27,24,270,630,22))] ],
+    9:[ [arc(50,30,26,24,0,360,22),[[76,30],[72,60],[55,95]]],
+        [cat(arc(50,30,26,24,30,390,22),[[76,32],[74,65],[58,95]])],
+        [arc(50,30,26,24,0,360,22),[[76,30],[76,95]]] ]
+  };
+
+  function dist(a,b){var dx=a.x-b.x,dy=a.y-b.y;return Math.sqrt(dx*dx+dy*dy);}
+  function pathLength(pts){
+    var d=0;
+    for(var i=1;i<pts.length;i++) if(pts[i].id===pts[i-1].id) d+=dist(pts[i-1],pts[i]);
+    return d;
+  }
+  function resample(src,n){
+    var pts=src.map(function(p){return {x:p.x,y:p.y,id:p.id};});
+    var I=pathLength(pts)/(n-1), D=0, out=[pts[0]];
+    if(!(I>0)) return null;
+    for(var i=1;i<pts.length;i++){
+      if(pts[i].id===pts[i-1].id){
+        var d=dist(pts[i-1],pts[i]);
+        if(D+d>=I){
+          var t=(I-D)/d;
+          var q={x:pts[i-1].x+t*(pts[i].x-pts[i-1].x), y:pts[i-1].y+t*(pts[i].y-pts[i-1].y), id:pts[i].id};
+          out.push(q); pts.splice(i,0,q); D=0;
+        }else D+=d;
+      }
+    }
+    while(out.length<n){var l=out[out.length-1];out.push({x:l.x,y:l.y,id:l.id});}
+    return out.slice(0,n);
+  }
+  function normalize(pts){
+    var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9,i;
+    for(i=0;i<pts.length;i++){
+      minx=Math.min(minx,pts[i].x);maxx=Math.max(maxx,pts[i].x);
+      miny=Math.min(miny,pts[i].y);maxy=Math.max(maxy,pts[i].y);
+    }
+    var s=Math.max(maxx-minx,maxy-miny); if(s<1e-6) s=1;
+    var cx=0,cy=0;
+    var o=pts.map(function(p){return {x:(p.x-minx)/s,y:(p.y-miny)/s,id:p.id};});
+    for(i=0;i<o.length;i++){cx+=o[i].x;cy+=o[i].y;}
+    cx/=o.length;cy/=o.length;
+    return o.map(function(p){return {x:p.x-cx,y:p.y-cy,id:p.id};});
+  }
+  function flatten(strokes){
+    var r=[];
+    strokes.forEach(function(s,si){s.forEach(function(p){r.push({x:p.x,y:p.y,id:si});});});
+    return r;
+  }
+  function prep(strokes){
+    var f=flatten(strokes);
+    if(f.length<2) return null;
+    var r=resample(f,N);
+    return r?normalize(r):null;
+  }
+  function cloudDist(a,b,start){
+    var n=a.length, matched=new Array(n), i, j, sum=0, k=start;
+    for(i=0;i<n;i++) matched[i]=false;
+    do{
+      var min=1e9, idx=-1;
+      for(j=0;j<n;j++){
+        if(!matched[j]){var d=dist(a[k],b[j]); if(d<min){min=d;idx=j;}}
+      }
+      matched[idx]=true;
+      var w=1-((k-start+n)%n)/n;
+      sum+=w*min;
+      k=(k+1)%n;
+    }while(k!==start);
+    return sum;
+  }
+  function greedy(a,b){
+    var n=a.length, step=Math.floor(Math.pow(n,0.5)), m=1e9;
+    for(var i=0;i<n;i+=step){
+      m=Math.min(m,cloudDist(a,b,i),cloudDist(b,a,i));
+    }
+    return m;
+  }
+
+  function aspect(strokes){
+    var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
+    strokes.forEach(function(s){s.forEach(function(p){
+      minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y);});});
+    var w=maxx-minx,h=maxy-miny; if(h<1e-6) return 3;
+    return Math.min(w/h,1.5);
+  }
+  var AR_W=0.9;
+  var TEMPLATES=[];
+  Object.keys(SHAPES).forEach(function(d){
+    SHAPES[d].forEach(function(shape){
+      var strokes=shape.map(function(s){return s.map(function(p){return {x:p[0],y:p[1]};});});
+      var t=prep(strokes);
+      if(t) TEMPLATES.push({d:parseInt(d,10),pts:t,ar:aspect(strokes)});
+    });
+  });
+
+  // strokes: [[{x,y}...],...] → 数字ごとの距離（小さいほど似ている）
+  function recognize(strokes){
+    var p=prep(strokes);
+    if(!p) return null;
+    var best={}, ar=aspect(strokes);
+    TEMPLATES.forEach(function(t){
+      var d=greedy(p,t.pts)+AR_W*Math.abs(ar-t.ar);
+      if(best[t.d]===undefined||d<best[t.d]) best[t.d]=d;
+    });
+    var cand=Object.keys(best).map(function(k){return {d:parseInt(k,10),dist:best[k]};});
+    cand.sort(function(a,b){return a.dist-b.dist;});
+    return {cand:cand,top:cand[0].d,dist:cand[0].dist};
+  }
+
+  function bbox(strokes){
+    var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
+    strokes.forEach(function(s){s.forEach(function(p){
+      minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y);
+    });});
+    return {minx:minx,maxx:maxx,miny:miny,maxy:maxy,w:maxx-minx,h:maxy-miny,cx:(minx+maxx)/2,cy:(miny+maxy)/2};
+  }
+  // ストロークを「数字ひとつ分」ごとにまとめる（左から右へ）
+  function group(strokes){
+    var items=strokes.filter(function(s){return s.length>0;}).map(function(s){return {s:s,b:bbox([s])};});
+    items.sort(function(a,b){return a.b.minx-b.b.minx;});
+    var groups=[];
+    items.forEach(function(it){
+      var g=null;
+      for(var i=groups.length-1;i>=0;i--){
+        var gb=groups[i].b;
+        var ov=Math.min(gb.maxx,it.b.maxx)-Math.max(gb.minx,it.b.minx);
+        var minw=Math.max(Math.min(gb.w,it.b.w),1);
+        var contained=(it.b.cx>=gb.minx&&it.b.cx<=gb.maxx);
+        if(ov>0.25*minw||contained){g=groups[i];break;}
+      }
+      if(g){g.strokes.push(it.s);g.b=bbox(g.strokes);}
+      else groups.push({strokes:[it.s],b:it.b});
+    });
+    groups.sort(function(a,b){return a.b.cx-b.b.cx;});
+    return groups;
+  }
+  return {recognize:recognize,group:group,bbox:bbox,SHAPES:SHAPES};
+})();
+/*HW-END*/
+
+/* =========================================================
+   データ・状態
+   ========================================================= */
+var FALLBACK=[{a:23,b:4},{a:12,b:3},{a:24,b:3},{a:36,b:2},{a:47,b:2},{a:58,b:4},{a:69,b:3}];
+var problems=FALLBACK.slice();
+var CATS=['一の位の掛け算','答えの数字の配置','繰り上がりの記入','十の位の掛け算','繰り上がりを加える操作'];
+var CAT_OF={mulOnes:CATS[0],writeOnes:CATS[1],writeCarry:CATS[2],mulTens:CATS[3],writeTens:CATS[4]};
+var WRITE={mulOnes:1,writeOnes:1,writeCarry:1,mulTens:1,writeTens:1};
+var MEMO={mulOnes:'memo1',mulTens:'memo2'};
+var RING={mulOnes:'o',writeOnes:'o',writeCarry:'o',mulTens:'t',writeTens:'t'};
+var CIRC=['①','②','③','④','⑤','⑥'];
+var UNREAD_MSG='うまく読めなかったよ。もう一度、ゆっくり書いてみよう。';
+// 手書き認識のしきい値（実機で様子を見て調整できます）
+var TH={maxDist:2.7,accept:1.2,reject:1.35,dust:0.18};
+
+var M=null,S=null;
+var stats={unread:0}; CATS.forEach(function(c){stats[c]=0;});
+var mistakes=[];
+var cellPx=90,cardW=1,cardH=1,dpr=1;
+
+function $(s){return document.querySelector(s);}
+var card=$('#paper'),cv=$('#ink'),ctx=cv.getContext('2d');
+
+function rep(x,n){return new Array(n+1).join(x+'＋').slice(0,-1);}
+function seqText(y,n){var r=[];for(var i=1;i<=n;i++)r.push(y*i);return r.join('、');}
+function validProblem(p){return p&&Number.isInteger(p.a)&&Number.isInteger(p.b)&&p.a>=10&&p.a<=99&&p.b>=2&&p.b<=9;}
+
+function makeModel(a,b){
+  var t=Math.floor(a/10),o=a%10,p=o*b,pO=p%10,pT=Math.floor(p/10);
+  var q=t*b,s=q+pT,sO=s%10,sT=Math.floor(s/10);
+  var steps=['mulOnes','writeOnes'];
+  if(pT>0) steps.push('writeCarry');
+  steps.push('mulTens','writeTens','done');
+  return {a:a,b:b,t:t,o:o,p:p,pO:pO,pT:pT,q:q,s:s,sO:sO,sT:sT,ans:a*b,steps:steps};
+}
+function cur(){return M.steps[S.idx];}
+function reached(id){var k=M.steps.indexOf(id);return k>=0&&k<S.idx;}
+function expected(id){return id==='mulOnes'?M.p:M.q;}
+
+/* =========================================================
+   画面：筆算用紙
+   ========================================================= */
+function targets(id){
+  function el(k){return document.querySelector('[data-slot="'+k+'"]');}
+  if(id==='mulOnes') return [{key:'memo1',el:el('memo1')}];
+  if(id==='mulTens') return [{key:'memo2',el:el('memo2')}];
+  if(id==='writeOnes') return [{key:'ans-o',el:el('ans-o'),val:M.pO}];
+  if(id==='writeCarry') return [{key:'carry',el:el('carry'),val:M.pT}];
+  if(id==='writeTens'){
+    if(M.sT>0) return [{key:'ans-h',el:el('ans-h'),val:M.sT},{key:'ans-t',el:el('ans-t'),val:M.sO}];
+    return [{key:'ans-t',el:el('ans-t'),val:M.sO}];
+  }
+  return [];
+}
+function boardHTML(){
+  var id=cur(),m=M,hasH=m.ans>=100,cols=hasH?['h','t','o']:['t','o'];
+  function ci(c){return cols.indexOf(c)+2;}
+  var ring=RING[id]||null,tg={};
+  targets(id).forEach(function(t){tg[t.key]=true;});
+  function cell(r,c,cls,inner,attr){
+    return '<div class="cell '+cls+'" style="grid-row:'+r+';grid-column:'+c+'"'+(attr||'')+'>'+inner+'</div>';
+  }
+  var h='';
+  cols.forEach(function(c){
+    var on=(ring===c)||(c==='h'&&id==='writeTens'&&m.sT>0);
+    var inner=c==='o'?'①一の位':c==='t'?'②十の位<span class="arr">◀</span>':'百の位';
+    h+='<div class="hdr p-'+c+(on?' on':'')+'" style="grid-row:1;grid-column:'+ci(c)+'">'+inner+'</div>';
+  });
+  var used=m.pT>0&&reached('writeTens');
+  h+=cell(2,ci('t'),'slot carry-slot'+(tg.carry?' target':'')+(used?' used':''),
+      '<span class="ghost">小さく</span>'+(used?'<span class="tick">✓つかった</span>':''),' data-slot="carry"');
+  function dg(c,v){return cell(3,ci(c),'digit p-'+c+' '+(ring?(ring===c?'ring':'dim'):''),v);}
+  h+=dg('t',m.t)+dg('o',m.o);
+  h+=cell(4,1,'sign','×');
+  h+=cell(4,ci('o'),'mult'+((id==='mulOnes'||id==='mulTens')?' mark':''),m.b);
+  h+='<div class="rule" style="grid-row:5;grid-column:1/-1"></div>';
+  var fin=id==='done'?' final':'';
+  h+=cell(6,ci('o'),'slot ans p-o'+(tg['ans-o']?' target':'')+fin,'<span class="ghost">ここ</span>',' data-slot="ans-o"');
+  h+=cell(6,ci('t'),'slot ans p-t'+(tg['ans-t']?' target':'')+fin,'<span class="ghost">ここ</span>',' data-slot="ans-t"');
+  if(hasH) h+=cell(6,ci('h'),'slot ans p-h'+(tg['ans-h']?' target':'')+fin,'<span class="ghost">ここ</span>',' data-slot="ans-h"');
+  return '<div class="board" style="grid-template-columns:var(--sign) repeat('+cols.length+',var(--cell))">'+h+'</div>';
+}
+function memoHTML(){
+  var id=cur(),k=M.steps.indexOf(id),k2=M.steps.indexOf('mulTens');
+  function row(n,x,cx,on){
+    return '<div class="memo-row"><span class="eq"><span class="'+cx+'">'+x+'</span>×'+M.b+'＝</span>'+
+      '<div class="memo-box'+(on?' target':'')+'" data-slot="memo'+n+'"><span class="ghost">ここに 書く</span></div></div>';
+  }
+  var h=row(1,M.o,'c-o',id==='mulOnes');
+  if(k>=k2) h+=row(2,M.t,'c-t',id==='mulTens');
+  return h;
+}
+
+/* =========================================================
+   画面：今やること・反応・ヒント
+   ========================================================= */
+function guide(id){
+  var m=M;
+  switch(id){
+    case 'mulOnes': return {text:m.o+'×'+m.b+'を 計算する',say:'まず、ここをかけよう！',sub:'答えを、したの メモに 書こう。'};
+    case 'writeOnes':
+      return m.pT>0
+        ?{text:m.p+'の 一の位を、答えに書く',say:m.p+'の 一の位を、ここに書こう！',sub:''}
+        :{text:m.p+'を、答えの一の位に書く',say:'答えを ここに書こう！',sub:''};
+    case 'writeCarry': return {text:'繰り上がりの'+m.pT+'を 書く',say:'十の位の'+m.pT+'を、小さく上に書こう！',sub:''};
+    case 'mulTens': return {text:m.t+'×'+m.b+'を 計算する',say:'次は、ここをかけよう！',sub:'答えを、したの メモに 書こう。'};
+    case 'writeTens':
+      if(m.pT>0) return {text:'繰り上がりを合わせた答えを書く',say:m.q+'と 上の小さな'+m.pT+'を 合わせて、ここに書こう！',sub:m.sT>0?'2けたになったら、そのまま左のマスにも書くよ。':''};
+      return {text:m.q+'を、答えの十の位に書く',say:'答えを ここに書こう！',sub:''};
+  }
+  return {text:'',say:'',sub:''};
+}
+function renderNow(){
+  var id=cur(),h='';
+  if(id==='done'){
+    var lines=['一の位から計算できたね！',M.pT>0?'繰り上がりも忘れずに使えたね！':'繰り上がりが ないことも たしかめられたね！',
+      S.mis===0?'まちがいゼロ！すばらしい！':'まちがえたところも、ちゃんと直せたね！'];
+    h='<div class="now-main"><span class="num">🎉</span><span>できた！ '+M.a+'×'+M.b+'＝'+M.ans+'！</span></div>'+
+      '<p class="praise">'+lines.join('<br>')+'<br>たし算でも たしかめられるよ：'+rep(M.a,M.b)+'＝'+M.ans+'</p>'+
+      '<button class="btn" data-act="nextProblem">つぎの もんだい ▶</button>';
+  }else{
+    var g=guide(id),n=M.steps.length-1,dots='';
+    for(var i=0;i<n;i++) dots+='<span class="dot '+(i<S.idx?'done':(i===S.idx?'cur':''))+'"></span>';
+    h='<div class="dots" aria-hidden="true">'+dots+'</div>'+
+      '<div class="now-main"><span class="num">'+CIRC[S.idx]+'</span><span>'+g.text+'</span></div>'+
+      '<p class="now-say">'+g.say+'</p>'+(g.sub?'<p class="now-sub">'+g.sub+'</p>':'');
+  }
+  $('#now').innerHTML=h;
+}
+function renderReact(){
+  var f=S.fb,el=$('#react'),id=cur();
+  if(!f){el.className='panel react idle';el.textContent='ゆっくり 書いてね。まちがえても だいじょうぶ！';}
+  else{el.className='panel react '+f.kind;el.textContent=(f.kind==='ok'?'◎ ':'💡 ')+f.text;}
+  if(WRITE[id]&&(S.unread[id]||0)>=3){
+    var b=document.createElement('button');
+    b.className='btn small';b.setAttribute('data-act','teacherOk');b.textContent='先生が「OK」にする';
+    el.appendChild(b);
+  }
+}
+function renderDetail(){
+  var d=$('#detail');
+  if(S.detail&&WRITE[cur()]){
+    d.hidden=false;
+    d.innerHTML='<h3>先生といっしょに 見てみよう</h3>'+detailHTML(cur())+
+      '<button class="btn small" data-act="closeDetail">とじる</button>';
+  }else{d.hidden=true;d.innerHTML='';}
+}
+function renderChips(){
+  var h='';
+  problems.forEach(function(p,i){
+    h+='<button class="chip" data-act="problem" data-i="'+i+'" aria-pressed="'+(S.pi===i)+'">'+p.a+'×'+p.b+'</button>';
+  });
+  h+='<button class="chip tool" data-act="drawer">せつめい・きろく</button>';
+  h+='<button class="chip tool" data-act="big">大きく</button>';
+  $('#chips').innerHTML=h;
+}
+function renderTools(){
+  $('#bPen').setAttribute('aria-pressed',S.tool==='pen');
+  $('#bEraser').setAttribute('aria-pressed',S.tool==='erase');
+}
+function renderAll(){
+  clearHere();
+  renderChips();
+  $('#board').innerHTML=boardHTML();
+  $('#memo').innerHTML=memoHTML();
+  renderNow();renderReact();renderDetail();renderTools();
+  cv.className=(cur()==='done')?'off':'';
+  layoutInk();
+  if(window.requestAnimationFrame) requestAnimationFrame(layoutInk);
+}
+
+/* =========================================================
+   ヒント（3だんかい：①さいしょのヒント → ②九九・繰り上がりを思い出す → ③くわしい解説）
+   ========================================================= */
+function hintsFor(id){
+  var m=M;
+  switch(id){
+    case 'mulOnes': return {
+      l1:m.o+'×'+m.b+'。かけ算だよ。'+m.b+'の段を 声に出してみよう。',
+      l2:m.b+'の段を '+m.o+'つ目まで 数えよう。'+(m.o>1?'（'+seqText(m.b,m.o-1)+'…）':'')};
+    case 'writeOnes': return m.pT>0?{
+      l1:m.p+'の 一の位を 見てみよう。',
+      l2:m.p+'は「'+m.pT+'0」と「'+m.pO+'」に 分けられるよ。一の位には 1つの数字だけ 書けるよ。'}:{
+      l1:'答えは 1けただよ。そのまま 一の位に書こう。',
+      l2:m.p+'を 答えの一の位に 書こう。繰り上がりは ないよ。'};
+    case 'writeCarry': return {
+      l1:m.p+'の 十の位の数は いくつかな？',
+      l2:'十の位の数は、答えには 書かないで、十の位の 上に 小さく書くよ（繰り上がり）。'};
+    case 'mulTens': return {
+      l1:'十の位の'+m.t+'に '+m.b+'をかけるよ。'+m.t+'×'+m.b+'を 考えよう。',
+      l2:m.b+'の段を '+m.t+'つ目まで 数えよう。'+(m.t>1?'（'+seqText(m.b,m.t-1)+'…）':'')};
+    case 'writeTens': return m.pT>0?{
+      l1:m.q+'と、上に書いた 小さな数を 見てみよう。',
+      l2:'繰り上がりの'+m.pT+'も 使うよ。'+m.q+'と '+m.pT+'を 合わせると いくつかな？'}:{
+      l1:m.t+'×'+m.b+'の 答えを 十の位に書こう。',
+      l2:'メモに書いた '+m.q+'を 答えの十の位に 書こう。'};
+  }
+  return {l1:'',l2:''};
+}
+function detailHTML(id){
+  var m=M;
+  switch(id){
+    case 'mulOnes': return '<p>'+m.o+'×'+m.b+'は「'+m.o+'を'+m.b+'回たす」ことと同じ数です。</p><p>'+rep(m.o,m.b)+'＝<b>'+m.p+'</b></p><p>九九でも '+m.b+'の段の '+m.o+'つ目で '+m.p+'。メモに <b>'+m.p+'</b> と書こう。</p>';
+    case 'writeOnes': return m.pT>0
+      ?'<p>'+m.p+'は 2けたの数。一の位のマスには 1つの数字しか 書けません。</p><p>'+m.p+'＝ <b>'+m.pT+'</b>0 ＋ <b>'+m.pO+'</b></p><p>一の位の <b>'+m.pO+'</b> を 答えの一の位に書きます。十の位の <b>'+m.pT+'</b> は、次の手順で 小さく上に書きます（繰り上がり）。</p>'
+      :'<p>'+m.o+'×'+m.b+'＝'+m.p+'は 1けたです。そのまま 答えの一の位に <b>'+m.p+'</b> と書きます。繰り上がりは ありません。</p>';
+    case 'writeCarry': return '<p>'+m.p+'の 十の位の <b>'+m.pT+'</b> は、答えには書かず、十の位の 上に 小さく書きます。</p><p>これが「繰り上がり」。次の 十の位の計算で 使います。</p>';
+    case 'mulTens': return '<p>'+m.t+'×'+m.b+'は「'+m.t+'を'+m.b+'回たす」ことと同じ数です。</p><p>'+rep(m.t,m.b)+'＝<b>'+m.q+'</b></p><p>メモに <b>'+m.q+'</b> と書こう。'+(m.pT>0?'そのあと、上に書いた繰り上がりの '+m.pT+' も 使います。':'')+'</p>';
+    case 'writeTens':
+      if(m.pT>0) return '<p>'+m.t+'×'+m.b+'＝'+m.q+'。ここで 上の小さな <b>'+m.pT+'</b>（繰り上がり）も 使います。</p><p>'+m.q+' ＋ '+m.pT+' ＝ <b>'+m.s+'</b></p><p>'+(m.sT>0?m.s+'は 最後の位なので、そのまま 左のマスにも 書きます（'+m.sT+'と'+m.sO+'）。':m.s+'を 答えの十の位に 書きます。')+'</p>';
+      return '<p>繰り上がりは ありません。'+m.t+'×'+m.b+'＝'+m.q+'を 答えの十の位に 書きます。</p>';
+  }
+  return '';
+}
+function showHint(id,spec){
+  var lv=S.lv[id]||0,hs=hintsFor(id),parts=[];
+  if(spec) parts.push(spec);
+  else if(lv===1) parts.push(hs.l1);
+  if(lv>=2) parts.push(hs.l2);
+  if(lv>=3){S.detail=true;parts.push('下の かいせつを 先生と いっしょに 見てみよう。');}
+  S.fb={kind:'hint',text:parts.join(' ')};
+  renderReact();renderDetail();
+}
+function giveHint(){
+  var id=cur();if(!WRITE[id])return;
+  S.lv[id]=Math.min(3,(S.lv[id]||0)+1);
+  showHint(id,null);
+}
+
+/* =========================================================
+   手書き：キャンバス
+   ========================================================= */
+function lineW(){return Math.max(4,cellPx*0.075);}
+function layoutMeasure(){
+  var r=card.getBoundingClientRect();
+  cardW=r.width||1;cardH=r.height||1;
+  var d=document.querySelector('.digit');
+  var h=d?d.getBoundingClientRect().height:0;
+  cellPx=h>10?h:90;
+}
+function layoutInk(){
+  layoutMeasure();
+  dpr=Math.min(window.devicePixelRatio||1,2.5);
+  cv.width=Math.round(cardW*dpr);cv.height=Math.round(cardH*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  redrawInk();
+}
+function drawStroke(s){
+  var pts=s.p,i;if(!pts.length)return;
+  ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=lineW();
+  ctx.strokeStyle=s.bad?'#E8821A':'#2A2F45';ctx.fillStyle=ctx.strokeStyle;
+  if(pts.length===1){ctx.beginPath();ctx.arc(pts[0].x*cardW,pts[0].y*cardH,lineW()/2,0,6.2832);ctx.fill();return;}
+  ctx.beginPath();ctx.moveTo(pts[0].x*cardW,pts[0].y*cardH);
+  for(i=1;i<pts.length;i++) ctx.lineTo(pts[i].x*cardW,pts[i].y*cardH);
+  ctx.stroke();
+}
+function redrawInk(){
+  ctx.clearRect(0,0,cardW,cardH);
+  S.ink.forEach(drawStroke);
+}
+function flashRemove(objs){
+  if(!objs||!objs.length)return;
+  objs.forEach(function(o){o.bad=true;});
+  redrawInk();
+  setTimeout(function(){S.ink=S.ink.filter(function(o){return !o.bad;});redrawInk();},750);
+}
+function silentRemove(objs){
+  if(!objs||!objs.length)return;
+  S.ink=S.ink.filter(function(o){return objs.indexOf(o)<0;});
+  redrawInk();
+}
+
+var drawing=null,pid=null;
+function pt(e){var r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)/(r.width||1),y:(e.clientY-r.top)/(r.height||1)};}
+function segDist(p,a,b){
+  var dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?((p.x-a.x)*dx+(p.y-a.y)*dy)/l:0;
+  t=Math.max(0,Math.min(1,t));
+  return Math.hypot(p.x-(a.x+t*dx),p.y-(a.y+t*dy));
+}
+function eraseAt(p){
+  var px={x:p.x*cardW,y:p.y*cardH},rad=cellPx*0.4,changed=false;
+  S.ink=S.ink.filter(function(s){
+    if(s.step!==S.idx||s.bad) return true;
+    var pts=s.p.map(function(q){return {x:q.x*cardW,y:q.y*cardH};}),hit=false;
+    if(pts.length===1) hit=Math.hypot(px.x-pts[0].x,px.y-pts[0].y)<rad;
+    for(var i=1;i<pts.length&&!hit;i++) if(segDist(px,pts[i-1],pts[i])<rad) hit=true;
+    if(hit)changed=true;
+    return !hit;
+  });
+  if(changed) redrawInk();
+}
+function onPenDown(p){
+  var id=cur();if(!WRITE[id])return;
+  var T=targets(id),px={x:p.x*cardW,y:p.y*cardH},near=false,hit=null;
+  T.forEach(function(t){
+    if(!t.el)return;
+    var rc=relRect(t.el);
+    if(inRect({cx:px.x,cy:px.y},rc,0.3)) hit=t;
+    if(Math.hypot(px.x-(rc.x+rc.w/2),px.y-(rc.y+rc.h/2))<cellPx*1.8) near=true;
+  });
+  if(hit) hit.el.classList.add('touching');
+  else if(!near&&T[0]&&T[0].el) showHere(T[0].el,'ここやで！');
+}
+function clearTouching(){
+  var l=document.querySelectorAll('.touching');
+  for(var i=0;i<l.length;i++) l[i].classList.remove('touching');
+}
+cv.addEventListener('pointerdown',function(e){
+  if(pid!==null||cur()==='done')return;
+  e.preventDefault();
+  pid=e.pointerId;
+  try{cv.setPointerCapture(pid);}catch(_){}
+  clearTimeout(S.evalTimer);clearTimeout(S.waitTimer);clearHere();
+  var p=pt(e);
+  if(S.tool==='erase'){eraseAt(p);return;}
+  drawing={p:[p],step:S.idx,bad:false};
+  S.ink.push(drawing);
+  drawStroke(drawing);
+  onPenDown(p);
+});
+cv.addEventListener('pointermove',function(e){
+  if(e.pointerId!==pid)return;
+  e.preventDefault();
+  var evs=(e.getCoalescedEvents&&e.getCoalescedEvents())||[e];
+  if(!evs.length) evs=[e];
+  for(var k=0;k<evs.length;k++){
+    var p=pt(evs[k]);
+    if(S.tool==='erase'){eraseAt(p);continue;}
+    if(!drawing)continue;
+    var last=drawing.p[drawing.p.length-1];
+    drawing.p.push(p);
+    ctx.lineCap='round';ctx.lineWidth=lineW();ctx.strokeStyle='#2A2F45';
+    ctx.beginPath();ctx.moveTo(last.x*cardW,last.y*cardH);ctx.lineTo(p.x*cardW,p.y*cardH);ctx.stroke();
+  }
+});
+function penUp(e){
+  if(e.pointerId!==pid)return;
+  pid=null;
+  clearTouching();
+  var wasDrawing=!!drawing;
+  drawing=null;
+  if(S.tool==='erase'){redrawInk();return;}
+  if(wasDrawing){
+    var id=cur();
+    var slow=!!MEMO[id]||(id==='writeTens'&&M.sT>0);
+    clearTimeout(S.evalTimer);
+    S.evalTimer=setTimeout(function(){evaluate(false);},slow?1000:700);
+  }
+}
+cv.addEventListener('pointerup',penUp);
+cv.addEventListener('pointercancel',penUp);
+cv.addEventListener('contextmenu',function(e){e.preventDefault();});
+
+/* ---- 「ここやで！」 ---- */
+var hereEl=null,hereTarget=null,hereTimer=null;
+function clearHere(){
+  if(hereEl&&hereEl.parentNode) hereEl.parentNode.removeChild(hereEl);
+  hereEl=null;
+  if(hereTarget) hereTarget.classList.remove('here-target');
+  hereTarget=null;
+  clearTimeout(hereTimer);
+}
+function showHere(el,text){
+  clearHere();
+  if(!el) return;
+  var r=el.getBoundingClientRect(),d=document.createElement('div'),below=r.top<90;
+  d.className='here';
+  d.innerHTML=below?'<span class="tip">▲</span><span class="bub">'+text+'</span>':'<span class="bub">'+text+'</span><span class="tip">▼</span>';
+  document.body.appendChild(d);
+  var w=d.offsetWidth,h=d.offsetHeight;
+  d.style.left=Math.max(4,Math.min(window.innerWidth-w-4,r.left+r.width/2-w/2))+'px';
+  d.style.top=Math.max(4,below?r.bottom+4:r.top-h-4)+'px';
+  el.classList.add('here-target');
+  hereEl=d;hereTarget=el;
+  hereTimer=setTimeout(clearHere,4200);
+}
+
+/* =========================================================
+   手書きの判定
+   ========================================================= */
+function relRect(el){
+  var r=el.getBoundingClientRect(),c=card.getBoundingClientRect();
+  return {x:r.left-c.left,y:r.top-c.top,w:r.width,h:r.height};
+}
+function inRect(b,rc,k){
+  var ex=k*rc.w,ey=k*Math.max(rc.h,cellPx*0.8);
+  return b.cx>=rc.x-ex&&b.cx<=rc.x+rc.w+ex&&b.cy>=rc.y-ey&&b.cy<=rc.y+rc.h+ey;
+}
+function toPx(s){return s.p.map(function(q){return {x:q.x*cardW,y:q.y*cardH};});}
+function mkRead(r){
+  var top=r.cand[0];
+  var o={top:top.d,dist:top.dist,conf:top.dist<=TH.maxDist};
+  function idx(e){for(var i=0;i<r.cand.length;i++) if(r.cand[i].d===e) return i;return 99;}
+  o.accepts=function(e){var i=idx(e);return i<=2&&r.cand[i].dist<=top.dist*TH.accept&&r.cand[i].dist<=TH.maxDist*1.15;};
+  o.rejects=function(e){var i=idx(e);return o.conf&&(i>=3||r.cand[i].dist>top.dist*TH.reject);};
+  return o;
+}
+function clusterize(objs){
+  var pxs=objs.map(toPx),groups=HW.group(pxs),out=[],dust=[];
+  groups.forEach(function(g){
+    var members=g.strokes.map(function(px){return objs[pxs.indexOf(px)];});
+    var size=Math.max(g.b.w,g.b.h);
+    if(size<cellPx*TH.dust){dust=dust.concat(members);return;}
+    var r=HW.recognize(g.strokes);
+    out.push({objs:members,b:g.b,read:r?mkRead(r):null});
+  });
+  return {cl:out,dust:dust};
+}
+function flat(cls){var r=[];cls.forEach(function(c){r=r.concat(c.objs);});return r;}
+
+function memoHint(id,v){
+  var x=id==='mulOnes'?M.o:M.t,y=M.b,carry=id==='mulTens'?M.pT:0,p=x*y,add=false,text;
+  if(v===x+y){add=true;text='たすのではなく、かけ算だよ。'+x+'×'+y+'を考えよう。';}
+  else if(id==='mulOnes'&&(v===M.t*M.b||v===M.t+M.b)) text='今は一の位からだよ。'+M.o+'を見てみよう。';
+  else if(id==='mulTens'&&(v===M.p||v===M.o+M.b)) text='今は十の位だよ。'+M.t+'を見てみよう。';
+  else if(carry>0&&v===p+carry) text='繰り上がりは、あとで合わせるよ。まず '+x+'×'+y+'だけ考えよう。';
+  else if(v===x||v===y) text=x+'×'+y+'の答えを書くよ。'+y+'の段を声に出してみよう。';
+  else if(v%y===0&&Math.abs(v-p)===y) text=y+'の段は あっているよ。でも1つずれたみたい。'+x+'つ目を数えなおそう。';
+  else if(p>=10&&v===(p%10)*10+Math.floor(p/10)) text='数字の並びが逆かも。もう一度見てみよう。';
+  else text=x+'×'+y+'を考えよう。'+y+'の段を思い出そう。';
+  return {text:text,add:add};
+}
+
+function judgeMemo(id,objs,force){
+  var tg=targets(id)[0],rect=relRect(tg.el),cr=clusterize(objs),cl=cr.cl;
+  if(!cl.length) return {act:'none',dust:cr.dust};
+  var inside=[],outside=[];
+  cl.forEach(function(c){(inRect(c.b,rect,0.25)?inside:outside).push(c);});
+  if(!inside.length){
+    return {act:'place',msg:'答えは、ここに書こう！',point:tg.el,remove:flat(outside),dust:cr.dust,cat:null};
+  }
+  var stray=flat(outside);
+  var bad=inside.filter(function(c){return !c.read||!c.read.conf;});
+  if(bad.length) return {act:'unread',remove:flat(inside),dust:cr.dust.concat(stray)};
+  var E=String(expected(id)),digs=inside.map(function(c){return c.read;}),i;
+  var allOk=digs.length<=E.length;
+  for(i=0;i<digs.length&&i<E.length;i++) if(!digs[i].accepts(parseInt(E[i],10))) allOk=false;
+  if(allOk&&digs.length===E.length) return {act:'solve',dust:cr.dust.concat(stray)};
+  if(allOk&&digs.length<E.length&&!force) return {act:'wait',dust:cr.dust.concat(stray)};
+  var amb=false;
+  if(digs.length===E.length){
+    for(i=0;i<digs.length;i++) if(!digs[i].accepts(parseInt(E[i],10))&&!digs[i].rejects(parseInt(E[i],10))) amb=true;
+    if(amb) return {act:'unread',remove:flat(inside),dust:cr.dust.concat(stray)};
+  }
+  var v=parseInt(digs.map(function(d){return d.top;}).join(''),10);
+  var h=memoHint(id,v);
+  return {act:'wrong',cat:CAT_OF[id],detail:(id==='mulOnes'?M.o:M.t)+'×'+M.b+'に「'+v+'」と読んだ'+(h.add?'（たし算かも）':''),
+    spec:h.text+'（「'+v+'」と読んだよ）',remove:flat(inside),dust:cr.dust.concat(stray)};
+}
+
+function boardWrong(id,c,T,missing){
+  var m=M,d=c.read.top,kind=c.bad.kind,pt=(missing[0]||T[0]).el;
+  switch(id){
+    case 'writeOnes':
+      if(kind==='multi') return {text:'答えの一の位には、1つの数字だけ書くよ。'+(m.pT>0?m.p+'の一の位を書こう。':''),point:pt};
+      if(kind==='place'){
+        if(d===m.pO) return {text:m.pO+'は 一の位に書こう。',point:pt};
+        if(m.pT>0&&d===m.pT) return {text:m.pT+'は、あとで 小さく上に書くよ。今は 一の位だよ。',point:pt};
+        return {text:'答えの一の位は、ここやで！',point:pt};
+      }
+      if(m.pT>0&&d===m.pT) return {text:m.pT+'は十の位の数だよ。一の位には '+m.p+'の 一の位を書こう。'};
+      if(d===m.o||d===m.b) return {text:'かける前の数ではなく、'+m.o+'×'+m.b+'の答えを 見てみよう。'};
+      return {text:(m.pT>0?m.p+'の 一の位を':m.o+'×'+m.b+'の答えを')+' 見てみよう。'};
+    case 'writeCarry':
+      if(kind==='multi') return {text:'繰り上がりは 1つの数字だよ。小さく上に書こう。',point:pt};
+      if(kind==='place'){
+        if(d===m.pT) return {text:'十の位の'+m.pT+'も、小さく上に書こう。',point:pt};
+        return {text:'繰り上がりは、ここやで！',point:pt};
+      }
+      if(d===m.pO) return {text:m.pO+'は もう 一の位に書いたよ。十の位の'+m.pT+'を、小さく上に書こう。'};
+      return {text:m.p+'の 十の位の数を、小さく上に書こう。'};
+    case 'writeTens':
+      if(kind==='multi') return {text:'ひとつの マスには 1つの数字を書くよ。',point:pt};
+      if(kind==='place'){
+        if(m.sT>0){
+          if(d===m.sT) return {text:m.sT+'は 左のマスに書こう。',point:pt};
+          if(d===m.sO) return {text:m.sO+'は 右のマスに書こう。',point:pt};
+        }else if(d===m.s) return {text:m.s+'は 十の位に書こう。',point:pt};
+        return {text:'答えの十の位は、ここやで！',point:pt};
+      }
+      if(m.pT>0&&d===m.q) return {text:'上の小さな'+m.pT+'を使おう。'+m.q+'と '+m.pT+'を合わせよう。'};
+      if(m.pT>0&&d===m.pT) return {text:'それは繰り上がりの数だよ。'+m.q+'と合わせた答えを書こう。'};
+      if(d===m.t||d===m.b) return {text:'かける前の数ではなく、'+m.t+'×'+m.b+(m.pT>0?'と繰り上がりを合わせた':'の')+'答えを書こう。'};
+      return {text:m.pT>0?m.q+'と、上の小さな'+m.pT+'を合わせよう。':m.t+'×'+m.b+'の答えを見てみよう。'};
+  }
+  return {text:'もう一度 考えてみよう。'};
+}
+
+function judgeBoard(id,objs){
+  var T=targets(id),cr=clusterize(objs),cl=cr.cl;
+  if(!cl.length) return {act:'none',dust:cr.dust};
+  var un=cl.filter(function(c){return !c.read||!c.read.conf;});
+  if(un.length) return {act:'unread',remove:flat(un),dust:cr.dust};
+  T.forEach(function(t){t.rect=relRect(t.el);});
+  var byT={};
+  cl.forEach(function(c){
+    var best=null,bd=1e9;
+    T.forEach(function(t){
+      if(inRect(c.b,t.rect,0.3)){
+        var dd=Math.hypot(c.b.cx-(t.rect.x+t.rect.w/2),c.b.cy-(t.rect.y+t.rect.h/2));
+        if(dd<bd){bd=dd;best=t;}
+      }
+    });
+    c.tgt=best;
+    if(best){(byT[best.key]=byT[best.key]||[]).push(c);}
+  });
+  cl.forEach(function(c){
+    if(!c.tgt){c.bad={kind:'place'};return;}
+    if(byT[c.tgt.key].length>1){c.bad={kind:'multi'};return;}
+    if(c.read.accepts(c.tgt.val)){c.good=true;return;}
+    if(c.read.rejects(c.tgt.val)){c.bad={kind:'digit'};return;}
+    c.amb=true;
+  });
+  var amb=cl.filter(function(c){return c.amb;});
+  if(amb.length) return {act:'unread',remove:flat(amb),dust:cr.dust};
+  var bads=cl.filter(function(c){return c.bad;}),goods=cl.filter(function(c){return c.good;}),cov={};
+  goods.forEach(function(c){cov[c.tgt.key]=true;});
+  var missing=T.filter(function(t){return !cov[t.key];});
+  if(!bads.length){
+    if(!missing.length) return {act:'solve',dust:cr.dust};
+    return {act:'partial',point:missing[0].el,dust:cr.dust,msg:'いいね！もうひとつ、ここやで！'};
+  }
+  var w=boardWrong(id,bads[0],T,missing);
+  var r={act:'wrong',cat:CAT_OF[id],detail:'「'+bads[0].read.top+'」と読んだ',spec:w.text,point:w.point,remove:flat(bads),dust:cr.dust};
+  if(!missing.length&&bads.every(function(c){return c.bad.kind==='place';})) r.act='solveNote';
+  return r;
+}
+
+function okText(id){
+  var m=M;
+  switch(id){
+    case 'mulOnes': return 'そう！'+m.o+'×'+m.b+'＝'+m.p+'！';
+    case 'writeOnes': return m.pT>0?'そう！'+m.pO+'を 一の位に書けたね！':'そう！'+m.p+'を 一の位に書けたね。繰り上がりは ないよ！';
+    case 'writeCarry': return '繰り上がりも書けたね！';
+    case 'mulTens': return m.pT>0?'そう！'+m.t+'×'+m.b+'＝'+m.q+'。上に書いた繰り上がりの'+m.pT+'も使うよ！':'そう！'+m.t+'×'+m.b+'＝'+m.q+'！';
+    case 'writeTens':
+      if(m.pT>0) return m.sT>0?'そう！'+m.q+'＋'+m.pT+'＝'+m.s+'。最後の位だから そのまま書けたね！':'そう！'+m.q+'に繰り上がりの'+m.pT+'を合わせて '+m.s+'だね！';
+      return 'そう！'+m.s+'を 書けたね！';
+  }
+  return '';
+}
+function solveStep(id,note){
+  clearTimeout(S.evalTimer);clearTimeout(S.waitTimer);clearHere();
+  var txt=okText(id)+(note?' '+note:'');
+  S.idx++;
+  S.detail=false;
+  S.fb={kind:'ok',text:txt};
+  if(cur()==='done') S.fb={kind:'ok',text:txt};
+  renderAll();
+}
+function logMistake(cat,detail){
+  if(!cat) return;
+  stats[cat]=(stats[cat]||0)+1;S.mis++;
+  mistakes.push({p:M.a+'×'+M.b,cat:cat,detail:detail});
+}
+function applyResult(id,res){
+  silentRemove(res.dust);
+  switch(res.act){
+    case 'none': redrawInk();return;
+    case 'wait':
+      S.waitTimer=setTimeout(function(){evaluate(true);},2600);return;
+    case 'unread':
+      S.unread[id]=(S.unread[id]||0)+1;stats.unread++;
+      flashRemove(res.remove);
+      S.fb={kind:'hint',text:UNREAD_MSG};renderReact();return;
+    case 'partial':
+      S.fb={kind:'ok',text:res.msg};renderReact();showHere(res.point,'ここやで！');return;
+    case 'place':
+      flashRemove(res.remove);
+      S.fb={kind:'hint',text:res.msg};renderReact();showHere(res.point,'ここやで！');return;
+    case 'wrong':
+      S.lv[id]=Math.min(3,(S.lv[id]||0)+1);
+      logMistake(res.cat,res.detail);
+      flashRemove(res.remove);
+      if(res.point) showHere(res.point,'ここやで！');
+      showHint(id,res.spec);
+      return;
+    case 'solve': solveStep(id,'');return;
+    case 'solveNote': logMistake(CAT_OF[id],'ちがう場所にも書いた');solveStep(id,'（'+res.spec+'）');return;
+  }
+}
+function evaluate(force){
+  clearTimeout(S.evalTimer);clearTimeout(S.waitTimer);
+  var id=cur();if(!WRITE[id])return;
+  var objs=S.ink.filter(function(s){return s.step===S.idx&&!s.bad;});
+  if(!objs.length)return;
+  layoutMeasure();
+  var res=MEMO[id]?judgeMemo(id,objs,force):judgeBoard(id,objs);
+  applyResult(id,res);
+}
+
+/* =========================================================
+   道具ボタン
+   ========================================================= */
+function undo(){
+  var i=S.ink.length-1;
+  while(i>=0&&S.ink[i].bad)i--;
+  if(i<0)return;
+  var s=S.ink.splice(i,1)[0];
+  if(s.step<S.idx) S.idx=s.step;
+  S.fb=null;S.detail=false;
+  renderAll();
+}
+function clearStep(){
+  S.ink=S.ink.filter(function(s){return s.step!==S.idx;});
+  S.fb=null;
+  redrawInk();renderReact();
+}
+var restartTimer=null;
+function restart(){
+  var b=$('#bRestart');
+  if(!restartTimer){
+    b.innerHTML='<span class="ic">❓</span>もういちど おすと はじめから';
+    restartTimer=setTimeout(function(){restartTimer=null;b.innerHTML='<span class="ic">🔄</span>はじめから';},3000);
+    return;
+  }
+  clearTimeout(restartTimer);restartTimer=null;
+  b.innerHTML='<span class="ic">🔄</span>はじめから';
+  startProblem(S.pi);
+}
+function teacherHTML(){
+  var m=M,h='';
+  h+='<h2>かけ算の意味</h2><p>'+m.a+'×'+m.b+'は「'+m.a+'を'+m.b+'回たす」（'+rep(m.a,m.b)+'）ことでも表せます。ひっ算では、'+m.a+'を「'+m.t+'0と'+m.o+'」に分け、<b>一の位から</b>順に、それぞれに'+m.b+'をかけて、答えを合わせます。</p>';
+  h+='<h2>この問題の解き方（先生用）</h2><ol>';
+  h+='<li>一の位：'+m.o+'×'+m.b+'＝'+m.p+'</li>';
+  if(m.pT>0) h+='<li>'+m.p+'の一の位の'+m.pO+'を答えの一の位に、十の位の'+m.pT+'を十の位の上に小さく書く（繰り上がり）</li>';
+  else h+='<li>'+m.p+'を答えの一の位に書く（繰り上がりなし）</li>';
+  h+='<li>十の位：'+m.t+'×'+m.b+'＝'+m.q+'</li>';
+  h+='<li>'+(m.pT>0?'繰り上がりの'+m.pT+'を合わせる：'+m.q+'＋'+m.pT+'＝'+m.s:'そのまま'+m.s)+'を答えの十の位に書く'+(m.sT>0?'（最後の位なので'+m.s+'をそのまま左に書く）':'')+'</li>';
+  h+='<li>答え：'+m.ans+'</li></ol>';
+  h+='<h2>手書き数字の読み取りについて</h2><p>書いた線をこの端末の中だけで読み取っています（点の並びを、0〜9の見本と比べる方法。外部サービスは使いません）。書いた場所が、マス目のどこにあたるかも見ています。確かでないときは、まちがいと決めつけず「うまく読めなかったよ」と案内し、書き直してもらいます。3回続けて読めないときは、「先生が OK にする」ボタンが出ます。</p>';
+  h+='<h2>つまずきメモ（この画面を開いている間だけ）</h2><div class="cats">';
+  CATS.forEach(function(c){h+='<span class="cat'+(stats[c]>0?' has':'')+'">'+c+(stats[c]>0?' ×'+stats[c]:'')+'</span>';});
+  h+='<span class="cat'+(stats.unread>0?' has':'')+'">読めなかった'+(stats.unread>0?' ×'+stats.unread:'')+'</span></div><ul class="mlog">';
+  var last=mistakes.slice(-6).reverse();
+  last.forEach(function(x){h+='<li>'+x.p+'：'+x.cat+'（'+x.detail+'）</li>';});
+  if(!last.length) h+='<li>まだ まちがいは ありません。</li>';
+  h+='</ul><p class="privacy">名前などは保存しません。記録は画面を閉じると消えます。</p>';
+  h+='<p><button class="btn" data-act="closeDrawer">とじる</button></p>';
+  return h;
+}
+function startProblem(pi){
+  var pr=problems[pi];
+  M=makeModel(pr.a,pr.b);
+  S={pi:pi,idx:0,ink:[],fb:null,lv:{},wrong:{},unread:{},tool:'pen',mis:0,detail:false,evalTimer:null,waitTimer:null};
+  renderAll();
+}
+
+/* =========================================================
+   イベント
+   ========================================================= */
+document.addEventListener('click',function(e){
+  var t=e.target.closest?e.target.closest('[data-act]'):null;
+  if(!t){
+    if(e.target===$('#drawer')) $('#drawer').hidden=true;
+    return;
+  }
+  var act=t.getAttribute('data-act');
+  if(act==='pen'){S.tool='pen';renderTools();}
+  else if(act==='eraser'){S.tool='erase';renderTools();}
+  else if(act==='hint') giveHint();
+  else if(act==='undo') undo();
+  else if(act==='clearStep') clearStep();
+  else if(act==='restart') restart();
+  else if(act==='problem') startProblem(parseInt(t.getAttribute('data-i'),10));
+  else if(act==='nextProblem') startProblem((S.pi+1)%problems.length);
+  else if(act==='teacherOk') solveStep(cur(),'（先生が OK にしました）');
+  else if(act==='closeDetail'){S.detail=false;renderDetail();}
+  else if(act==='drawer'){$('#sheet').innerHTML=teacherHTML();$('#drawer').hidden=false;}
+  else if(act==='closeDrawer') $('#drawer').hidden=true;
+  else if(act==='big'){document.documentElement.classList.toggle('big');renderAll();}
+});
+['gesturestart','gesturechange','gestureend'].forEach(function(ev){
+  document.addEventListener(ev,function(e){e.preventDefault();});
+});
+var rzTimer=null;
+window.addEventListener('resize',function(){clearTimeout(rzTimer);rzTimer=setTimeout(function(){if(S)renderAll();},150);});
+
+/* =========================================================
+   起動
+   ========================================================= */
+startProblem(0);
+if(window.google&&google.script&&google.script.run){
+  google.script.run
+    .withSuccessHandler(function(list){
+      if(!Array.isArray(list))return;
+      var ok=list.filter(validProblem);
+      if(!ok.length)return;
+      var a=M.a,b=M.b,k=-1;
+      problems=ok;
+      problems.forEach(function(p,i){if(p.a===a&&p.b===b&&k<0)k=i;});
+      if(k<0) startProblem(0); else {S.pi=k;renderChips();}
+    })
+    .withFailureHandler(function(){})
+    .getProblems();
+}
+})();
+</script>
+</body>
+</html>
