@@ -22,7 +22,6 @@
 }
 @media (orientation:portrait){:root{--cell:clamp(5rem,min(14vh,calc((100vw - 18rem)/3.6)),11rem)}}
 *{box-sizing:border-box}
-[hidden]{display:none!important}
 html{font-size:16px;-webkit-text-size-adjust:100%}
 html.big{font-size:19px}
 body{
@@ -36,13 +35,14 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
 /* ---------- 全体レイアウト（10.1〜10.5インチ・横向きを基本に、縦向きにも対応） ---------- */
 .app{
   height:100vh;height:100dvh;padding:.5rem;display:grid;gap:.5rem;
-  grid-template-columns:minmax(0,1fr) clamp(13rem,18vw,17rem);
+  grid-template-columns:minmax(0,1fr) clamp(14rem,22vw,20rem);
   grid-template-rows:minmax(0,1fr);
   grid-template-areas:"paper guide";
 }
 @media (orientation:portrait){
   .app{
-    grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;
+    height:auto;min-height:100vh;min-height:100dvh;
+    grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;
     grid-template-areas:"paper" "guide";
   }
 }
@@ -58,16 +58,12 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
   background-color:var(--paper);
   background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
   background-size:1.6rem 1.6rem;
-  border:3px solid var(--ink);border-radius:1.2rem;padding:.4rem .5rem;
-  display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:.6rem;
+  border:3px solid var(--ink);border-radius:1.2rem;padding:.7rem .5rem;
+  display:flex;flex-direction:row;align-items:center;justify-content:center;gap:.8rem;
 }
-.bcol{flex:1 1 auto;min-width:11rem;align-self:stretch}
-.dock{position:relative;z-index:6;flex:none;display:flex;flex-direction:column;gap:.35rem;align-self:center}
-.dbtn{width:4.4rem;min-height:3.9rem;border-radius:.9rem;background:#fff;border:3px solid var(--ink);box-shadow:0 .18rem 0 var(--ink);font-size:.72rem;font-weight:700;line-height:1.15;padding:.15rem}
-.dbtn .ic{display:block;font-size:1.4rem;line-height:1.2}
-.dbtn:active{transform:translateY(.15rem);box-shadow:0 .03rem 0 var(--ink)}
-.dbtn[aria-pressed="true"]{background:var(--ink);color:#fff}
+.bcol{flex:none;width:var(--bw);align-self:stretch}
 #bubbles{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:4}
+@media (orientation:portrait){.card{height:auto}}
 #ink{position:absolute;left:0;top:0;width:100%;height:100%;z-index:5;touch-action:none;border-radius:1.1rem;cursor:crosshair}
 #ink.off{pointer-events:none}
 .board{display:grid;justify-content:center;column-gap:.3rem;
@@ -101,7 +97,7 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
 
 /* 書く場所（マス目） */
 .slot{border:.25rem dashed var(--grid2);background:rgba(255,255,255,.55)}
-.slot .ghost{display:none;font-size:calc(var(--cell)*.22);font-weight:700;opacity:.7;position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;line-height:1.2}
+.slot .ghost{display:none;font-size:calc(var(--cell)*.26);font-weight:700;opacity:.8;position:absolute;bottom:.15rem}
 .slot.target .ghost{display:block}
 .slot.target{animation:blink 1.4s ease-in-out infinite;background:rgba(255,255,255,.9)}
 .slot.target.p-o{border-color:var(--ones);color:var(--ones)}
@@ -109,7 +105,7 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
 .slot.target.p-h{border-color:var(--huns);color:var(--huns)}
 .slot.carry-slot{border-color:#E6B5C9;border-radius:.6rem}
 .slot.carry-slot.target{border-color:var(--carry);color:var(--carry);background:var(--carry-bg)}
-.slot.carry-slot .ghost{font-size:calc(var(--cell)*.18)}
+.slot.carry-slot .ghost{bottom:auto;font-size:calc(var(--cell)*.2)}
 .slot.touching{box-shadow:0 0 0 .25rem #7BD39F;background:var(--ok-bg)}
 .slot.used .tick{position:absolute;right:.1rem;top:-.1rem;font-size:calc(var(--cell)*.2);color:var(--ok);background:#fff;border-radius:.4rem;padding:0 .2rem}
 .final{animation:glow 1.6s ease-in-out infinite alternate}
@@ -125,7 +121,7 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
 .now .dot{width:.85rem;height:.85rem;border-radius:50%;border:2.5px solid var(--ink-soft);background:#fff}
 .now .dot.done{background:var(--ok);border-color:var(--ok)}
 .now .dot.cur{background:var(--mark);border-color:var(--ink);transform:scale(1.25)}
-.now-main{display:flex;align-items:center;gap:.5rem;font-size:1.3rem;word-break:auto-phrase;line-break:strict;font-weight:700;line-height:1.25}
+.now-main{display:flex;align-items:center;gap:.5rem;font-size:1.45rem;font-weight:700;line-height:1.25}
 .now-main .num{flex:none;font-size:2.4rem;color:var(--ink)}
 .now-say{font-size:1.3rem;font-weight:700;margin:.25rem 0 0}
 .now-sub{font-size:1.05rem;color:var(--ink-soft);margin:.1rem 0 0}
@@ -178,14 +174,6 @@ select#probSel{font-size:1.2rem;font-weight:700;padding:.3rem .6rem;border:3px s
 
   <section class="a-paper">
     <div class="card" id="paper" aria-label="ひっ算ようし。ゆびやペンで 数字を書こう">
-      <div class="dock">
-        <button class="dbtn" data-act="pen" id="bPen" aria-pressed="true"><span class="ic">✏️</span>えんぴつ</button>
-        <button class="dbtn" data-act="eraser" id="bEraser" aria-pressed="false"><span class="ic">🧽</span>けしごむ</button>
-        <button class="dbtn" data-act="hint"><span class="ic">💡</span>ヒント</button>
-        <button class="dbtn" data-act="undo"><span class="ic">↩️</span>ひとつ<br>もどる</button>
-        <button class="dbtn" data-act="clearStep"><span class="ic">🗑️</span>ぜんぶ<br>けす</button>
-        <button class="dbtn" data-act="restart" id="bRestart"><span class="ic">🔄</span>はじめ<br>から</button>
-      </div>
       <div id="board"></div>
       <div class="bcol" id="bcol"></div>
       <div id="bubbles" aria-live="polite"></div>
@@ -197,6 +185,14 @@ select#probSel{font-size:1.2rem;font-weight:700;padding:.3rem .6rem;border:3px s
     <div class="head-tools" id="chips"></div>
     <div class="panel now" id="now"></div>
     <button class="btn block" data-act="teacherOk" id="teacherOkBtn" hidden>先生が「OK」にする</button>
+    <div class="tools">
+      <button class="tbtn" data-act="pen" id="bPen" aria-pressed="true"><span class="ic">✏️</span>えんぴつ</button>
+      <button class="tbtn" data-act="eraser" id="bEraser" aria-pressed="false"><span class="ic">🧽</span>けしごむ</button>
+      <button class="tbtn" data-act="hint"><span class="ic">💡</span>ヒント</button>
+      <button class="tbtn" data-act="undo"><span class="ic">↩️</span>ひとつ もどる</button>
+      <button class="tbtn" data-act="clearStep"><span class="ic">🗑️</span>ぜんぶ けす</button>
+      <button class="tbtn" data-act="restart" id="bRestart"><span class="ic">🔄</span>はじめから</button>
+    </div>
   </section>
 </div>
 
@@ -564,7 +560,6 @@ function renderAll(){
   clearHere();
   renderChips();
   $('#board').innerHTML=boardHTML();
-  fitCell();
   renderNow();renderDetail();renderTools();
   cv.className=(cur()==='done')?'off':'';
   layoutInk();
@@ -625,18 +620,6 @@ function giveHint(){
    手書き：キャンバス
    ========================================================= */
 function lineW(){return Math.max(4,cellPx*0.055);}
-function fitCell(){
-  // 用紙の大きさにあわせて、マスの大きさを決める（むだな空白を作らない）
-  var rem=parseFloat(getComputedStyle(document.documentElement).fontSize)||16;
-  var cs=getComputedStyle(card),px=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0),py=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
-  var cw=card.clientWidth-px,ch=card.clientHeight-py;
-  if(cw<200||ch<200) return;
-  var cols=M.ans>=100?3:2,dock=document.querySelector('.dock'),dw=(dock?dock.offsetWidth:0)+0.6*rem;
-  var availW=cw-dw-11*rem-0.6*rem-cols*0.3*rem;
-  var cW=availW/(0.55+cols),cH=(ch-2.2*rem)/4.15;
-  var c=Math.max(56,Math.min(230,cW,cH));
-  document.documentElement.style.setProperty('--cell',c+'px');
-}
 function layoutMeasure(){
   var r=card.getBoundingClientRect();
   cardW=r.width||1;cardH=r.height||1;
@@ -982,12 +965,12 @@ var restartTimer=null;
 function restart(){
   var b=$('#bRestart');
   if(!restartTimer){
-    b.innerHTML='<span class="ic">❓</span>ほんとに？';
-    restartTimer=setTimeout(function(){restartTimer=null;b.innerHTML='<span class="ic">🔄</span>はじめ<br>から';},3000);
+    b.innerHTML='<span class="ic">❓</span>もういちど おすと はじめから';
+    restartTimer=setTimeout(function(){restartTimer=null;b.innerHTML='<span class="ic">🔄</span>はじめから';},3000);
     return;
   }
   clearTimeout(restartTimer);restartTimer=null;
-  b.innerHTML='<span class="ic">🔄</span>はじめ<br>から';
+  b.innerHTML='<span class="ic">🔄</span>はじめから';
   startProblem(S.pi);
 }
 function teacherHTML(){
