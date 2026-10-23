@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>みずで かんがえよう（しょうすうの たしざん・ひきざん）</title>
+<title>みずで かんがえよう（めもり すうじなし）</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
     color:var(--ink); overflow-x:hidden; overflow-y:auto;
   }
   .stage{
-    max-width:1500px; min-height:100vh; margin:0 auto; padding:1vh 16px;
+    max-width:1600px; min-height:100vh; margin:0 auto; padding:.8vh 14px;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
   }
   .title{
@@ -33,7 +33,7 @@
 
   .lab{
     background:#fff; border-radius:26px; width:100%;
-    padding:1.6vh clamp(14px,2.5vw,36px);
+    padding:1.4vh clamp(14px,2.5vw,36px);
     box-shadow:0 8px 0 #DCE9F2, 0 12px 22px rgba(90,120,150,.18);
   }
   .lab-content{
@@ -46,8 +46,7 @@
   .small-block, .cup-block{ display:flex; flex-direction:column; align-items:center; }
   .big-cups{ display:flex; align-items:flex-end; gap:clamp(4px,1vw,14px); }
   svg.cup{ display:block; }
-  .big-cups svg.cup{ height:clamp(200px,min(66vh,30vw),540px); width:auto; }
-  #smallSvg{ height:clamp(90px,min(26vh,12vw),200px); width:auto; }
+  .big-cups svg.cup{ height:clamp(150px,min(50vh,24vw),440px); width:auto; }
   .cap{
     margin-top:4px; font-weight:800; font-size:clamp(11px,1.7vh,16px);
     color:var(--brown-dark); background:#FFF3D6; border:2px solid #FFD98E;
@@ -56,11 +55,12 @@
   .cup-outline{ fill:none; stroke:var(--brown); stroke-width:5; stroke-linejoin:round; }
   .tick-line{ stroke:var(--brown); stroke-width:3; stroke-linecap:round; }
   .tick-label{ font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700; font-size:15px; fill:var(--brown-dark); }
-  .tick-label.whole{ fill:#E85D75; font-weight:800; font-size:17px; }
+  .tick-label.half{ fill:#1E88C7; font-weight:800; font-size:19px; }
+  .tick-label.whole{ fill:#E85D75; font-weight:800; font-size:22px; }
   .water{ transition:y .5s cubic-bezier(.4,0,.2,1), height .5s cubic-bezier(.4,0,.2,1); }
   .wave{ transition:cy .5s cubic-bezier(.4,0,.2,1), opacity .3s; }
   .fullmark{
-    font-family:'M PLUS Rounded 1c',sans-serif; font-weight:800; font-size:130px;
+    font-family:'M PLUS Rounded 1c',sans-serif; font-weight:800; font-size:150px;
     fill:#fff; opacity:0; transition:opacity .4s;
   }
   .fullmark.show{ opacity:.6; }
@@ -68,7 +68,7 @@
   /* ===== side panel ===== */
   .side-panel{
     display:flex; flex-direction:column; align-items:center;
-    gap:clamp(8px,1.5vh,16px); width:clamp(300px,36vw,520px);
+    gap:clamp(8px,1.5vh,16px); width:clamp(280px,32vw,460px);
   }
   .problem{
     width:100%; background:#FFF8E1; border:3px dashed #FFD98E; border-radius:20px;
@@ -111,8 +111,8 @@
   .controls{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(8px,1.4vh,14px); width:100%; }
   .btn{
     font-family:'M PLUS Rounded 1c',sans-serif; font-weight:800;
-    font-size:clamp(15px,2.8vh,22px); color:#fff; border:none; border-radius:999px;
-    padding:clamp(8px,1.5vh,16px) 12px; min-height:clamp(46px,7.6vh,68px);
+    font-size:clamp(15px,2.6vh,21px); color:#fff; border:none; border-radius:999px;
+    padding:clamp(8px,1.5vh,16px) 12px; min-height:clamp(42px,6.4vh,62px);
     cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;
     box-shadow:0 5px 0 rgba(0,0,0,.15), 0 7px 12px rgba(0,0,0,.12);
     transition:transform .08s, box-shadow .08s, filter .15s; touch-action:manipulation;
@@ -137,39 +137,30 @@
     animation:fall linear forwards;
   }
   @keyframes fall{ to{ transform:translateY(110vh) rotate(600deg); } }
+
+  .top-bar{ display:flex; gap:clamp(10px,1.6vw,22px); align-items:stretch; width:100%; margin-bottom:1.4vh; }
+  .top-bar .problem{ flex:1; display:flex; flex-direction:column; justify-content:center; }
+  .top-bar .readout{ width:auto; min-width:clamp(190px,22vw,320px); justify-content:center; }
+  .top-bar .problem .expr{ font-size:clamp(28px,6.4vh,58px); }
+  .top-bar .readout .num{ font-size:clamp(42px,9.5vh,88px); }
+  .rlabel{ font-size:clamp(12px,2vh,17px); font-weight:800; color:#6B7C93; }
+
+  .top-bar{ justify-content:flex-start; }
+  .top-bar .problem{ flex:0 0 clamp(260px,34vw,460px); padding:clamp(4px,.9vh,9px) 12px; }
+  .top-bar .problem .expr{ font-size:clamp(22px,4.6vh,42px); }
+  .top-bar .problem .hint{ font-size:clamp(12px,1.9vh,17px); }
+  .top-bar .problem .label{ font-size:clamp(10px,1.5vh,13px); }
+  .top-bar .readout{ min-width:clamp(170px,18vw,260px); border-color:#7FC8F5; border-width:4px; }
+  .top-bar .message{ flex:1; min-width:150px; background:#FFF0F3; border-radius:18px; padding:6px 14px; justify-content:center; }
+  .top-bar .message.good{ background:#E6F8EE; }
 </style>
 </head>
 <body>
 
 <div class="stage">
-  <h1 class="title">みずで かんがえよう<small>しょうすうの たしざん・ひきざん</small></h1>
 
   <div class="lab">
-    <div class="lab-content">
-
-      <div class="cups-area">
-        <div class="small-block">
-          <svg id="smallSvg" class="cup" viewBox="0 0 120 220">
-            <defs>
-              <linearGradient id="wgS" gradientUnits="userSpaceOnUse" x1="0" y1="40" x2="0" y2="190">
-                <stop offset="0%" stop-color="#82E0FF"/><stop offset="100%" stop-color="#1E9BE0"/>
-              </linearGradient>
-              <clipPath id="clipS"><path d="M20,40 L100,40 L100,176 Q100,190 86,190 L34,190 Q20,190 20,176 Z"/></clipPath>
-            </defs>
-            <g clip-path="url(#clipS)">
-              <rect id="smallWater" class="water" x="20" width="80" y="40" height="150" fill="url(#wgS)"/>
-              <ellipse id="smallWave" class="wave" cx="60" cy="40" rx="38" ry="4" fill="#EAFCFF" opacity=".65"/>
-            </g>
-            <path class="cup-outline" d="M20,40 L100,40 L100,176 Q100,190 86,190 L34,190 Q20,190 20,176 Z"/>
-            <text x="60" y="125" text-anchor="middle" font-family="'M PLUS Rounded 1c',sans-serif" font-weight="800" font-size="30" fill="#6B4423" opacity=".6">0.1</text>
-          </svg>
-          <div class="cap">0.1の ます</div>
-        </div>
-
-        <div class="big-cups" id="bigCups"></div>
-      </div>
-
-      <div class="side-panel">
+    <div class="top-bar">
         <div class="problem" id="problem">
           <div class="label">もんだい</div>
           <div class="expr" id="expr">「もんだいを だす」を おしてね</div>
@@ -178,15 +169,28 @@
         </div>
 
         <div class="readout">
+          <div class="rlabel">いまの みず</div>
           <div class="num" id="num">0</div>
           <div class="count">0.1が <b id="cnt">0</b>こ</div>
         </div>
 
         <div class="message" id="msg">0.1が 10こ あつまると 1 だよ</div>
 
+    </div>
+
+    <div class="lab-content">
+
+      <div class="cups-area">
+        <div class="big-cups" id="bigCups"></div>
+      </div>
+
+      <div class="side-panel">
+
         <div class="controls">
           <button class="btn b-add" id="addBtn">💧 0.1 いれる</button>
           <button class="btn b-sub" id="subBtn">🚿 0.1 すてる</button>
+          <button class="btn b-add" id="addHalfBtn">💧 0.5 いれる</button>
+          <button class="btn b-sub" id="subHalfBtn">🚿 0.5 すてる</button>
           <button class="btn b-add" id="addWholeBtn">🪣 1 いれる</button>
           <button class="btn b-sub" id="subWholeBtn">🗑️ 1 すてる</button>
           <button class="btn b-prob" id="probBtn">📝 もんだいを だす</button>
@@ -203,8 +207,8 @@
 
 <script>
 (function(){
-  const SEG = 34, BOTTOM = 360, CUPS = 3, MAX = CUPS * 10;
-  const PATH = 'M70,20 L180,20 L180,344 Q180,360 164,360 L86,360 Q70,360 70,344 Z';
+  const SEG = 34, BOTTOM = 360, CUPS = 4, MAX = CUPS * 10;
+  const PATH = 'M56,20 L206,20 L206,344 Q206,360 190,360 L72,360 Q56,360 56,344 Z';
 
   let n = 0;                 // 水の量（0.1が何こ）
   let busy = false;
@@ -223,14 +227,20 @@
     let ticks = '';
     for (let i = 1; i <= 10; i++) {
       const y = BOTTOM - i * SEG;
-      const whole = i === 10;
-      const label = whole ? String(c + 1) : (c + i / 10).toFixed(1);
-      ticks += `<line class="tick-line" x1="70" x2="56" y1="${y}" y2="${y}"/>` +
-               `<text class="tick-label${whole ? ' whole' : ''}" x="50" y="${y + 5}" text-anchor="end">${label}</text>`;
+      const whole = i === 10, half = i === 5;
+      if (whole) {
+        ticks += `<line class="tick-line" x1="56" x2="38" y1="${y}" y2="${y}" style="stroke-width:4.5"/>` +
+                 `<text class="tick-label whole" x="32" y="${y + 7}" text-anchor="end">${c + 1}</text>`;
+      } else if (half) {
+        ticks += `<line class="tick-line" x1="56" x2="40" y1="${y}" y2="${y}" style="stroke-width:4"/>` +
+                 `<text class="tick-label half" x="34" y="${y + 6}" text-anchor="end">${c + 0.5}</text>`;
+      } else {
+        ticks += `<line class="tick-line" x1="56" x2="46" y1="${y}" y2="${y}"/>`;
+      }
     }
     html += `
       <div class="cup-block">
-        <svg class="cup" viewBox="0 0 190 400">
+        <svg class="cup" viewBox="0 0 216 400">
           <defs>
             <linearGradient id="wg${c}" gradientUnits="userSpaceOnUse" x1="0" y1="20" x2="0" y2="360">
               <stop offset="0%" stop-color="#82E0FF"/><stop offset="100%" stop-color="#1E9BE0"/>
@@ -238,9 +248,9 @@
             <clipPath id="clip${c}"><path d="${PATH}"/></clipPath>
           </defs>
           <g clip-path="url(#clip${c})">
-            <rect class="water" x="70" width="110" y="360" height="0" fill="url(#wg${c})"/>
-            <ellipse class="wave" cx="125" cy="360" rx="52" ry="5" fill="#EAFCFF" opacity="0"/>
-            <text class="fullmark" x="125" y="235" text-anchor="middle">1</text>
+            <rect class="water" x="56" width="150" y="360" height="0" fill="url(#wg${c})"/>
+            <ellipse class="wave" cx="131" cy="360" rx="70" ry="5" fill="#EAFCFF" opacity="0"/>
+            <text class="fullmark" x="131" y="235" text-anchor="middle">1</text>
           </g>
           ${ticks}
           <path class="cup-outline" d="${PATH}"/>
@@ -254,22 +264,16 @@
     water: el.querySelector('.water'), wave: el.querySelector('.wave'), mark: el.querySelector('.fullmark')
   }));
 
-  const smallWater = $('smallWater'), smallWave = $('smallWave'), smallSvg = $('smallSvg');
   const numEl = $('num'), cntEl = $('cnt'), msgEl = $('msg');
   const exprEl = $('expr'), hintEl = $('hint'), dotsEl = $('dots');
   const addBtn = $('addBtn'), subBtn = $('subBtn');
   const addWholeBtn = $('addWholeBtn'), subWholeBtn = $('subWholeBtn');
+  const addHalfBtn = $('addHalfBtn'), subHalfBtn = $('subHalfBtn');
   const probBtn = $('probBtn'), resetBtn = $('resetBtn');
 
   function setMsg(text, good) {
     msgEl.textContent = text;
     msgEl.classList.toggle('good', !!good);
-  }
-
-  function setSmall(full) {
-    smallWater.setAttribute('y', full ? 40 : 190);
-    smallWater.setAttribute('height', full ? 150 : 0);
-    smallWave.setAttribute('cy', full ? 40 : 190);
   }
 
   // ---- render ----
@@ -290,6 +294,8 @@
 
     addBtn.disabled = busy || n >= MAX;
     subBtn.disabled = busy || n <= 0;
+    addHalfBtn.disabled = busy || n > MAX - 5;
+    subHalfBtn.disabled = busy || n < 5;
     addWholeBtn.disabled = busy || n > MAX - 10;
     subWholeBtn.disabled = busy || n < 10;
     probBtn.disabled = busy;
@@ -327,23 +333,18 @@
 
   // ---- animations ----
   function flyDrops(count, targetCup) {
-    const f = smallSvg.getBoundingClientRect();
     const t = cups[targetCup].svg.getBoundingClientRect();
-    const sx = f.left + f.width * 0.55, sy = f.top + f.height * 0.2;
-    const ex = t.left + t.width * 0.62, ey = t.top + t.height * 0.12;
+    const sx = t.left + t.width * 0.62, sy = Math.max(4, t.top - 6);
     const fx = $('fx');
     for (let i = 0; i < count; i++) {
       const d = document.createElement('div');
       d.className = 'drop';
-      d.style.left = sx + 'px'; d.style.top = sy + 'px';
+      d.style.left = (sx + (Math.random() * 20 - 10)) + 'px'; d.style.top = sy + 'px';
       fx.appendChild(d);
-      const dx = ex - sx + (Math.random() * 16 - 8);
-      const dy = ey - sy;
       const a = d.animate([
-        { transform: 'translate(0,0) scale(.7)', opacity: 1 },
-        { transform: `translate(${dx * 0.5}px, ${-30}px) scale(1)`, opacity: 1, offset: 0.45 },
-        { transform: `translate(${dx}px, ${dy + t.height * 0.25}px) scale(1)`, opacity: 0.9 }
-      ], { duration: 600, delay: i * 45, easing: 'ease-in', fill: 'both' });
+        { transform: 'translateY(0) scale(.7)', opacity: 1 },
+        { transform: `translateY(${t.height * 0.4}px) scale(1)`, opacity: 0.9 }
+      ], { duration: 520, delay: i * 45, easing: 'ease-in', fill: 'both' });
       a.onfinish = () => d.remove();
     }
   }
@@ -386,13 +387,11 @@
     if (busy || n >= MAX) return;
     busy = true; render();
     const target = Math.floor(n / 10);
-    setSmall(false);
     flyDrops(6, target);
     await sleep(340);
     n += 1;
     render(); renderProblemAndMsg('add', 1);
     await sleep(280);
-    setSmall(true);
     await sleep(320);
     busy = false; render();
   }
@@ -408,27 +407,25 @@
     busy = false; render();
   }
 
-  async function addWhole() {
-    if (busy || n > MAX - 10) return;
+  async function addAmount(amt) {
+    if (busy || n > MAX - amt) return;
     busy = true; render();
     const target = Math.floor(n / 10);
-    setSmall(false);
-    flyDrops(10, target);
-    await sleep(380);
-    n += 10;
-    render(); renderProblemAndMsg('add', 10);
+    flyDrops(amt, target);
+    await sleep(amt >= 10 ? 380 : 360);
+    n += amt;
+    render(); renderProblemAndMsg('add', amt);
     await sleep(250);
-    setSmall(true);
-    await sleep(400);
+    await sleep(380);
     busy = false; render();
   }
 
-  async function subWhole() {
-    if (busy || n < 10) return;
+  async function subAmount(amt) {
+    if (busy || n < amt) return;
     busy = true; render();
     drips(Math.ceil(n / 10) - 1);
-    n -= 10;
-    render(); renderProblemAndMsg('sub', 10);
+    n -= amt;
+    render(); renderProblemAndMsg('sub', amt);
     await sleep(650);
     busy = false; render();
   }
@@ -444,6 +441,14 @@
 
     if (op === 'add' && amt === 1 && n % 10 === 0) {
       setMsg(`0.1が 10こ あつまって 1 に なったよ！${n < MAX ? ' つぎの ますに いれよう' : ''}`);
+    } else if (op === 'add' && amt === 5) {
+      if (Math.floor(n / 10) > Math.floor(prev / 10)) setMsg('0.1が 10こ あつまって 1 に なったよ！');
+      else setMsg('0.5は 0.1が 5こ ぶんの 水だよ');
+    } else if (op === 'sub' && amt === 5) {
+      const r = prev % 10;
+      if (r !== 0 && r < 5) setMsg('この ますだけでは たりないから、まえの ますの 水からも ひくよ');
+      else if (r === 0) setMsg('1は 0.1が 10こ。5こ ひくと 5こ のこるよ');
+      else setMsg('0.5は 0.1が 5こ ぶんの 水だよ');
     } else if (op === 'add' && amt === 10) {
       setMsg('1は 0.1が 10こ ぶんの 水だよ');
     } else if (op === 'sub' && amt === 1 && prev % 10 === 0) {
@@ -464,10 +469,10 @@
   function newProblem() {
     for (let t = 0; t < 60; t++) {
       if (Math.random() < 0.5) {
-        const a = rand(2, 19), b = rand(2, 19);
+        const a = rand(2, 29), b = rand(2, 19);
         if (a + b <= MAX && ((a % 10) + (b % 10) >= 10 || t > 40)) return { type: 'add', a, b, ans: a + b };
       } else {
-        const a = rand(11, 29), b = rand(2, a - 1);
+        const a = rand(11, 39), b = rand(2, a - 1);
         if (b <= 19 && ((a % 10) < (b % 10) || t > 40)) return { type: 'sub', a, b, ans: a - b };
       }
     }
@@ -479,7 +484,6 @@
     problem = newProblem();
     problem.solved = false;
     n = problem.a;
-    setSmall(true);
     render();
     renderProblem();
     const sym = problem.type === 'add' ? 'たす' : 'ひく';
@@ -489,19 +493,18 @@
   function reset() {
     if (busy) return;
     n = 0; problem = null;
-    setSmall(true);
     render(); renderProblem();
     setMsg('0.1が 10こ あつまると 1 だよ');
   }
 
   addBtn.addEventListener('click', addTenth);
   subBtn.addEventListener('click', subTenth);
-  addWholeBtn.addEventListener('click', addWhole);
-  subWholeBtn.addEventListener('click', subWhole);
+  addHalfBtn.addEventListener('click', () => addAmount(5));
+  subHalfBtn.addEventListener('click', () => subAmount(5));
+  addWholeBtn.addEventListener('click', () => addAmount(10));
+  subWholeBtn.addEventListener('click', () => subAmount(10));
   probBtn.addEventListener('click', startProblem);
   resetBtn.addEventListener('click', reset);
-
-  setSmall(true);
   render();
   renderProblem();
 })();
