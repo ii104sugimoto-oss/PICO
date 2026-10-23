@@ -15,6 +15,7 @@
   --carry:#D6336C; --carry-bg:#FFE0EC;
   --ok:#1F8A52; --ok-bg:#DDF5E8; --hint:#9A4A00; --hint-bg:#FFF1CC;
   --mark:#FFE680;
+  --thou:#8A5CF6; --thou-bg:#E9E0FF; --cyb:#7C3AED;
   --cell:clamp(5rem,min(20vh,calc((75vw - 16rem)/3.6)),11rem);
   --bw:12.5rem;
   --sign:calc(var(--cell)*.55);
@@ -22,6 +23,7 @@
 }
 @media (orientation:portrait){:root{--cell:clamp(5rem,min(14vh,calc((100vw - 18rem)/3.6)),11rem)}}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{font-size:16px;-webkit-text-size-adjust:100%}
 html.big{font-size:19px}
 body{
@@ -35,14 +37,13 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
 /* ---------- 全体レイアウト（10.1〜10.5インチ・横向きを基本に、縦向きにも対応） ---------- */
 .app{
   height:100vh;height:100dvh;padding:.5rem;display:grid;gap:.5rem;
-  grid-template-columns:minmax(0,1fr) clamp(14rem,22vw,20rem);
+  grid-template-columns:minmax(0,1fr) clamp(13rem,18vw,17rem);
   grid-template-rows:minmax(0,1fr);
   grid-template-areas:"paper guide";
 }
 @media (orientation:portrait){
   .app{
-    height:auto;min-height:100vh;min-height:100dvh;
-    grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;
+    grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;
     grid-template-areas:"paper" "guide";
   }
 }
@@ -58,12 +59,16 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
   background-color:var(--paper);
   background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
   background-size:1.6rem 1.6rem;
-  border:3px solid var(--ink);border-radius:1.2rem;padding:.7rem .5rem;
-  display:flex;flex-direction:row;align-items:center;justify-content:center;gap:.8rem;
+  border:3px solid var(--ink);border-radius:1.2rem;padding:.4rem .5rem;
+  display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:.6rem;
 }
-.bcol{flex:none;width:var(--bw);align-self:stretch}
+.bcol{flex:1 1 auto;min-width:9rem;align-self:stretch}
+.dock{position:relative;z-index:6;flex:none;display:flex;flex-direction:column;gap:.35rem;align-self:center}
+.dbtn{width:4.4rem;min-height:3.6rem;border-radius:.9rem;background:#fff;border:3px solid var(--ink);box-shadow:0 .18rem 0 var(--ink);font-size:.72rem;font-weight:700;line-height:1.15;padding:.15rem}
+.dbtn .ic{display:block;font-size:1.4rem;line-height:1.2}
+.dbtn:active{transform:translateY(.15rem);box-shadow:0 .03rem 0 var(--ink)}
+.dbtn[aria-pressed="true"]{background:var(--ink);color:#fff}
 #bubbles{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:4}
-@media (orientation:portrait){.card{height:auto}}
 #ink{position:absolute;left:0;top:0;width:100%;height:100%;z-index:5;touch-action:none;border-radius:1.1rem;cursor:crosshair}
 #ink.off{pointer-events:none}
 .board{display:grid;justify-content:center;column-gap:.3rem;
@@ -71,17 +76,17 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
 .cell{position:relative;display:flex;align-items:center;justify-content:center;
   font-size:calc(var(--cell)*.74);font-weight:700;line-height:1;border-radius:.8rem;
   transition:background .25s,opacity .25s,box-shadow .25s}
-.p-o{color:var(--ones)}.p-t{color:var(--tens)}.p-h{color:var(--huns)}
+.p-o{color:var(--ones)}.p-t{color:var(--tens)}.p-h{color:var(--huns)}.p-k{color:var(--thou)}
 .sign,.mult{color:var(--ink)}
 .sign{font-size:calc(var(--cell)*.6)}
 .rule{align-self:center;height:.38rem;background:var(--ink);border-radius:.2rem}
 .dim{opacity:.3}
 .circ{position:absolute;left:-.45rem;top:-.45rem;width:calc(100% + .9rem);height:calc(100% + .9rem);overflow:visible;pointer-events:none;transform:rotate(-5deg)}
 .circ ellipse{fill:none;stroke-width:5;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;animation:draw .9s ease-out .1s forwards}
-.circ.c-on ellipse{stroke:var(--ones)}.circ.c-tn ellipse{stroke:var(--tens)}.circ.c-cy ellipse{stroke:var(--carry)}
+.circ.c-on ellipse{stroke:var(--ones)}.circ.c-tn ellipse{stroke:var(--tens)}.circ.c-hn ellipse{stroke:var(--huns)}.circ.c-kn ellipse{stroke:var(--thou)}.circ.c-cy ellipse{stroke:var(--carry)}
 @keyframes draw{to{stroke-dashoffset:0}}
-.bub2{position:absolute;background:#fff;border:3px solid var(--ones);border-radius:1.1rem;padding:.5rem .7rem;font-size:1.15rem;font-weight:700;line-height:1.4;box-shadow:0 .2rem .5rem rgba(0,0,0,.12)}
-.bub2 small{display:block;font-size:.85rem;font-weight:400;color:var(--ink-soft);margin-top:.2rem}
+.bub2{position:absolute;background:#fff;border:3px solid var(--ones);border-radius:1rem;padding:.35rem .55rem;font-size:1.05rem;font-weight:700;line-height:1.4;box-shadow:0 .2rem .5rem rgba(0,0,0,.12)}
+.bub2 small{display:block;font-size:.8rem;font-weight:400;color:var(--ink-soft);margin-top:.2rem}
 .bub2::before{content:"";position:absolute;left:-.95rem;top:calc(var(--ty,1.5rem) - .6rem);border:.6rem solid transparent;border-right:.8rem solid var(--ones);border-left:0}
 .bub2::after{content:"";position:absolute;left:-.62rem;top:calc(var(--ty,1.5rem) - .5rem);border:.5rem solid transparent;border-right:.65rem solid #fff;border-left:0}
 .bub2.ok{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
@@ -89,23 +94,27 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
 .bub2.hint{border-color:#E0A33A;background:var(--hint-bg);color:var(--hint);animation:shake .4s}
 .bub2.hint::before{border-right-color:#E0A33A}.bub2.hint::after{border-right-color:var(--hint-bg)}
 .bub2.say{color:var(--ink)}
-.hdr{font-size:.85rem;font-weight:700;border-radius:.7rem;padding:.15rem .1rem;margin-bottom:.3rem;white-space:nowrap;position:relative;opacity:.5}
-.hdr.p-o{background:var(--ones-bg)}.hdr.p-t{background:var(--tens-bg)}.hdr.p-h{background:var(--huns-bg)}
-.hdr.on{opacity:1;color:#fff}.hdr.on.p-o{background:var(--ones)}.hdr.on.p-t{background:var(--tens)}.hdr.on.p-h{background:var(--huns)}
+.hdr{font-size:.8rem;font-weight:700;border-radius:.7rem;padding:.15rem .1rem;margin-bottom:.3rem;white-space:nowrap;position:relative;opacity:.5}
+.hdr.p-o{background:var(--ones-bg)}.hdr.p-t{background:var(--tens-bg)}.hdr.p-h{background:var(--huns-bg)}.hdr.p-k{background:var(--thou-bg)}
+.hdr.on{opacity:1;color:#fff}.hdr.on.p-o{background:var(--ones)}.hdr.on.p-t{background:var(--tens)}.hdr.on.p-h{background:var(--huns)}.hdr.on.p-k{background:var(--thou)}
 .hdr .arr{position:absolute;right:-.7rem;top:50%;transform:translateY(-50%);font-size:1rem;color:var(--ink-soft);opacity:.45}
 .hdr.on .arr{color:var(--tens);opacity:1}
 
 /* 書く場所（マス目） */
 .slot{border:.25rem dashed var(--grid2);background:rgba(255,255,255,.55)}
-.slot .ghost{display:none;font-size:calc(var(--cell)*.26);font-weight:700;opacity:.8;position:absolute;bottom:.15rem}
+.slot .ghost{display:none;font-size:calc(var(--cell)*.22);font-weight:700;opacity:.7;position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;line-height:1.2}
 .slot.target .ghost{display:block}
 .slot.target{animation:blink 1.4s ease-in-out infinite;background:rgba(255,255,255,.9)}
 .slot.target.p-o{border-color:var(--ones);color:var(--ones)}
 .slot.target.p-t{border-color:var(--tens);color:var(--tens)}
 .slot.target.p-h{border-color:var(--huns);color:var(--huns)}
+.slot.target.p-k{border-color:var(--thou);color:var(--thou)}
 .slot.carry-slot{border-color:#E6B5C9;border-radius:.6rem}
 .slot.carry-slot.target{border-color:var(--carry);color:var(--carry);background:var(--carry-bg)}
-.slot.carry-slot .ghost{bottom:auto;font-size:calc(var(--cell)*.2)}
+.slot.carry-slot .ghost{font-size:calc(var(--cell)*.16)}
+.slot.carry-slot.cyr1{border-color:#C9B5F0}
+.slot.carry-slot.cyr1.target{border-color:var(--cyb);color:var(--cyb);background:#EFE8FF}
+.slot.carry-slot{border-width:.18rem}
 .slot.touching{box-shadow:0 0 0 .25rem #7BD39F;background:var(--ok-bg)}
 .slot.used .tick{position:absolute;right:.1rem;top:-.1rem;font-size:calc(var(--cell)*.2);color:var(--ok);background:#fff;border-radius:.4rem;padding:0 .2rem}
 .final{animation:glow 1.6s ease-in-out infinite alternate}
@@ -121,7 +130,7 @@ button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
 .now .dot{width:.85rem;height:.85rem;border-radius:50%;border:2.5px solid var(--ink-soft);background:#fff}
 .now .dot.done{background:var(--ok);border-color:var(--ok)}
 .now .dot.cur{background:var(--mark);border-color:var(--ink);transform:scale(1.25)}
-.now-main{display:flex;align-items:center;gap:.5rem;font-size:1.45rem;font-weight:700;line-height:1.25}
+.now-main{display:flex;align-items:center;gap:.5rem;font-size:1.3rem;word-break:auto-phrase;line-break:strict;font-weight:700;line-height:1.25}
 .now-main .num{flex:none;font-size:2.4rem;color:var(--ink)}
 .now-say{font-size:1.3rem;font-weight:700;margin:.25rem 0 0}
 .now-sub{font-size:1.05rem;color:var(--ink-soft);margin:.1rem 0 0}
@@ -143,6 +152,20 @@ select#probSel{font-size:1.2rem;font-weight:700;padding:.3rem .6rem;border:3px s
 .tbtn .ic{display:block;font-size:1.4rem}
 .btn{font-size:1.2rem;font-weight:700;padding:.6rem 1rem;border-radius:1rem;background:var(--ones);color:#fff;border:3px solid var(--ink);box-shadow:0 .22rem 0 var(--ink)}
 .btn.small{font-size:.95rem;padding:.35rem .8rem;background:#fff;color:var(--ink);align-self:flex-start}
+.pick{padding:.5rem .6rem}
+.pick-t{font-size:.8rem;font-weight:700;color:var(--ink-soft);margin:.1rem 0 .25rem}
+.pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;margin-bottom:.4rem}
+.pick-cm{display:flex;gap:.3rem;margin-bottom:.4rem}
+.pick-row{display:flex;flex-wrap:wrap;gap:.3rem}
+.pbtn{font-size:.95rem;font-weight:700;border:3px solid var(--ink);background:#fff;border-radius:.8rem;padding:.4rem .2rem;min-height:2.8rem;line-height:1.2}
+.pbtn.sm{flex:1;font-size:.85rem;min-height:2.3rem}
+.pbtn[aria-pressed="true"]{background:var(--ink);color:#fff}
+.padp{padding:.5rem .6rem}
+.padg{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem}
+.nbtn{font-size:1.7rem;font-weight:700;min-height:3rem;border-radius:.8rem;background:#fff;border:3px solid var(--ink);box-shadow:0 .15rem 0 var(--ink);line-height:1.1}
+.nbtn:active{transform:translateY(.12rem);box-shadow:0 .03rem 0 var(--ink)}
+.nbtn.del{font-size:.85rem;background:#F1F4F8}
+#teacherOkBtn small{display:block;font-size:.75rem;font-weight:400;opacity:.9}
 .praise{font-size:1.15rem;font-weight:400;margin:.3rem 0 .5rem}
 
 /* ここやで */
@@ -174,6 +197,15 @@ select#probSel{font-size:1.2rem;font-weight:700;padding:.3rem .6rem;border:3px s
 
   <section class="a-paper">
     <div class="card" id="paper" aria-label="ひっ算ようし。ゆびやペンで 数字を書こう">
+      <div class="dock">
+        <button class="dbtn" data-act="pen" id="bPen" aria-pressed="true"><span class="ic">✏️</span>えんぴつ</button>
+        <button class="dbtn" data-act="eraser" id="bEraser" aria-pressed="false"><span class="ic">🧽</span>けしごむ</button>
+        <button class="dbtn" data-act="hint"><span class="ic">💡</span>ヒント</button>
+        <button class="dbtn" data-act="undo"><span class="ic">↩️</span>ひとつ<br>もどる</button>
+        <button class="dbtn" data-act="clearStep"><span class="ic">🗑️</span>ぜんぶ<br>けす</button>
+        <button class="dbtn" data-act="pad" id="bPad" aria-pressed="false"><span class="ic">🔢</span>すうじ<br>ボタン</button>
+        <button class="dbtn" data-act="restart" id="bRestart"><span class="ic">🔄</span>はじめ<br>から</button>
+      </div>
       <div id="board"></div>
       <div class="bcol" id="bcol"></div>
       <div id="bubbles" aria-live="polite"></div>
@@ -182,17 +214,10 @@ select#probSel{font-size:1.2rem;font-weight:700;padding:.3rem .6rem;border:3px s
   </section>
 
   <section class="a-guide">
-    <div class="head-tools" id="chips"></div>
+    <div class="panel pick" id="pick"></div>
     <div class="panel now" id="now"></div>
+    <div class="panel padp" id="padPanel" hidden></div>
     <button class="btn block" data-act="teacherOk" id="teacherOkBtn" hidden>先生が「OK」にする</button>
-    <div class="tools">
-      <button class="tbtn" data-act="pen" id="bPen" aria-pressed="true"><span class="ic">✏️</span>えんぴつ</button>
-      <button class="tbtn" data-act="eraser" id="bEraser" aria-pressed="false"><span class="ic">🧽</span>けしごむ</button>
-      <button class="tbtn" data-act="hint"><span class="ic">💡</span>ヒント</button>
-      <button class="tbtn" data-act="undo"><span class="ic">↩️</span>ひとつ もどる</button>
-      <button class="tbtn" data-act="clearStep"><span class="ic">🗑️</span>ぜんぶ けす</button>
-      <button class="tbtn" data-act="restart" id="bRestart"><span class="ic">🔄</span>はじめから</button>
-    </div>
   </section>
 </div>
 
@@ -219,7 +244,8 @@ var HW = (function(){
 
   // 数字の見本（0〜100 の枠の中。書き方のちがいを複数用意）
   var SHAPES = {
-    0:[ [arc(50,50,30,45,270,630,36)], [arc(50,50,22,45,270,630,36)], [arc(50,50,38,44,300,660,36)] ],
+    0:[ [arc(50,50,30,45,270,630,36)], [arc(50,50,22,45,270,630,36)], [arc(50,50,38,44,300,660,36)],
+        [arc(50,50,30,45,255,615,32)], [arc(50,50,34,42,200,590,32)] ],
     1:[ [[[50,5],[50,95]]], [[[30,28],[50,5],[50,95]]], [[[30,28],[50,5],[50,95]],[[28,95],[72,95]]] ],
     2:[ [cat(arc(50,32,28,27,185,395,14),[[22,93],[80,93]])],
         [cat(arc(50,32,28,27,185,395,14),[[22,93]])],
@@ -232,7 +258,14 @@ var HW = (function(){
     5:[ [cat([[75,8],[30,8],[26,46]],arc(46,68,28,24,250,520,18))],
         [[[75,8],[30,8]],cat([[30,8],[26,46]],arc(46,68,28,24,250,520,18))] ],
     6:[ [cat([[66,5],[40,28],[28,55]],arc(50,70,26,25,170,530,22))],
-        [cat([[62,5],[36,30],[24,62]],arc(50,70,26,25,180,540,22))] ],
+        [cat([[62,5],[36,30],[24,62]],arc(50,70,26,25,180,540,22))],
+        [[[68,8],[45,18],[28,40],[22,65],[30,85],[50,95],[72,85],[78,65],[65,48],[45,45],[28,58]]],
+        [arc(50,68,27,26,0,360,22),[[28,62],[30,40],[45,18],[68,6]]],
+        [arc(50,62,30,33,0,360,24),[[66,12],[46,22],[32,40]]],
+        [cat([[64,8],[38,24],[26,52]],arc(50,68,26,26,190,550,22))],
+        [[[40,6],[35,50],[32,90]],arc(54,68,22,24,0,360,22)],
+        [cat([[42,5],[34,62]],arc(52,70,22,24,200,560,22))],
+        [cat([[62,5],[28,52]],arc(46,72,24,22,160,520,20))] ],
     7:[ [[[20,8],[80,8],[40,95]]],
         [[[20,8],[80,8],[40,95]],[[32,52],[68,52]]],
         [cat([[18,14],[30,6],[80,8]],[[55,50],[38,95]])] ],
@@ -326,6 +359,7 @@ var HW = (function(){
   }
   var AR_W=0;
   var TEMPLATES=[];
+  var USERT=[],USER=[];   // 先生が「この字は合ってる」と教えた、実際の筆跡
   Object.keys(SHAPES).forEach(function(d){
     SHAPES[d].forEach(function(shape){
       var base=shape.map(function(s){return s.map(function(p){return {x:p[0],y:p[1]};});});
@@ -338,20 +372,71 @@ var HW = (function(){
     });
   });
 
+  function normStrokes(strokes){
+    var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
+    strokes.forEach(function(s){s.forEach(function(p){minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y);});});
+    var sc=100/Math.max(maxx-minx,maxy-miny,1);
+    return strokes.map(function(s){
+      var o=[];
+      s.forEach(function(p){
+        var q={x:Math.round((p.x-minx)*sc*10)/10,y:Math.round((p.y-miny)*sc*10)/10},l=o[o.length-1];
+        if(!l||Math.abs(q.x-l.x)+Math.abs(q.y-l.y)>=1.5)o.push(q);
+      });
+      return o;
+    });
+  }
+  function rebuildUser(){
+    USERT=[];
+    USER.forEach(function(u){var t=prep(u.strokes);if(t)USERT.push({d:u.d,pts:t,ar:aspect(u.strokes)});});
+  }
+  function addSample(d,strokes){
+    var n=normStrokes(strokes);
+    if(!n.length)return false;
+    USER.push({d:d,strokes:n});
+    var same=USER.filter(function(u){return u.d===d;});
+    if(same.length>6)USER.splice(USER.indexOf(same[0]),1);   // 同じ数字は新しい6こまで
+    rebuildUser();
+    return true;
+  }
+  function exportSamples(){return JSON.stringify(USER);}
+  function importSamples(json){
+    try{
+      var a=JSON.parse(json);
+      if(Array.isArray(a)){USER=a.filter(function(u){return u&&typeof u.d==='number'&&Array.isArray(u.strokes);});rebuildUser();}
+    }catch(e){}
+  }
+  function clearSamples(){USER=[];USERT=[];}
   // strokes: [[{x,y}...],...] → 数字ごとの距離（小さいほど似ている）
   function recognize(strokes){
     var p=prep(strokes);
     if(!p) return null;
     var best={}, ar=aspect(strokes);
-    TEMPLATES.forEach(function(t){
+    TEMPLATES.concat(USERT).forEach(function(t){
       var d=greedy(p,t.pts)+AR_W*Math.abs(ar-t.ar);
       if(best[t.d]===undefined||d<best[t.d]) best[t.d]=d;
     });
     var cand=Object.keys(best).map(function(k){return {d:parseInt(k,10),dist:best[k]};});
     cand.sort(function(a,b){return a.dist-b.dist;});
+    tieBreak(cand,strokes);
     return {cand:cand,top:cand[0].d,dist:cand[0].dist};
   }
 
+  // 文字の「重心」が、上にかたよっているか（9）、下にかたよっているか（6）、まんなか（0）か
+  function centroidY(strokes){
+    var f=flatten(strokes);var r=f.length>1?resample(f,N):null;if(!r)return 0.5;
+    var minY=1e9,maxY=-1e9,sum=0,i;
+    for(i=0;i<r.length;i++){minY=Math.min(minY,r[i].y);maxY=Math.max(maxY,r[i].y);sum+=r[i].y;}
+    return maxY>minY?(sum/r.length-minY)/(maxY-minY):0.5;
+  }
+  function tieBreak(cand,strokes){
+    var a=cand[0],b=cand[1];if(!b)return;
+    var pair=[a.d,b.d].sort().join('');
+    if(b.dist>a.dist*1.4)return;
+    var cy=centroidY(strokes),want=null;
+    if(pair==='06'){want=cy>=0.56?6:(cy<=0.52?0:null);}
+    else if(pair==='09'){want=cy<=0.44?9:(cy>=0.49?0:null);}
+    if(want!==null&&a.d!==want&&b.d===want){cand[0]=b;cand[1]=a;}
+  }
   function bbox(strokes){
     var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
     strokes.forEach(function(s){s.forEach(function(p){
@@ -371,7 +456,10 @@ var HW = (function(){
         var ov=Math.min(gb.maxx,it.b.maxx)-Math.max(gb.minx,it.b.minx);
         var minw=Math.max(Math.min(gb.w,it.b.w),1);
         var contained=(it.b.cx>=gb.minx&&it.b.cx<=gb.maxx);
-        if(ov>0.25*minw||contained){g=groups[i];break;}
+        // 9や4のように 2画で書く数字は、横にすこしはなれていても 1つの数字にまとめる
+        var gap=Math.max(it.b.minx-gb.maxx,gb.minx-it.b.maxx);
+        var near=gap<=0.1*Math.max(gb.h,it.b.h);
+        if(ov>0.25*minw||contained||near){g=groups[i];break;}
       }
       if(g){g.strokes.push(it.s);g.b=bbox(g.strokes);}
       else groups.push({strokes:[it.s],b:it.b});
@@ -379,148 +467,315 @@ var HW = (function(){
     groups.sort(function(a,b){return a.b.cx-b.b.cx;});
     return groups;
   }
-  return {recognize:recognize,group:group,bbox:bbox,SHAPES:SHAPES};
+  return {recognize:recognize,group:group,bbox:bbox,SHAPES:SHAPES,addSample:addSample,exportSamples:exportSamples,importSamples:importSamples,clearSamples:clearSamples,sampleCount:function(){return USER.length;}};
 })();
 /*HW-END*/
 
 /* =========================================================
-   データ・状態
+   設定・状態
    ========================================================= */
-var FALLBACK=[{a:23,b:4},{a:12,b:3},{a:24,b:3},{a:36,b:2},{a:47,b:2},{a:58,b:4},{a:69,b:3}];
-var problems=FALLBACK.slice();
-var CATS=['一の位の掛け算','答えの数字の配置','繰り上がりの記入','十の位の掛け算','繰り上がりを加える操作'];
-var CAT_OF={writeOnes:CATS[1],writeCarry:CATS[2],writeTens:CATS[3]};
-var WRITE={writeOnes:1,writeCarry:1,writeTens:1};
-var RING={writeOnes:'o',writeCarry:'o',writeTens:'t'};
-var CIRC=['①','②','③','④','⑤','⑥'];
+var TYPES={'2x1':[2,1],'3x1':[3,1],'2x2':[2,2],'3x2':[3,2]};
+var TYPE_NAMES={'2x1':'2けた<br>×1けた','3x1':'3けた<br>×1けた','2x2':'2けた<br>×2けた','3x2':'3けた<br>×2けた'};
+var CM_NAMES={any:'どちらも',yes:'あり',no:'なし'};
+var cfg={type:'2x1',cm:'any'};
+var PLACE=['一の位','十の位','百の位','千の位','万の位'];
+var HDR=['①一の位','②十の位','百の位','千の位','万の位'];
+var COLCLS=['p-o','p-t','p-h','p-k','p-k'];
+var CIRCS='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳'.split('');
+var BASE_CATS=['一の位の掛け算','十の位の掛け算','百の位の掛け算','答えの数字の配置','繰り上がりの記入','繰り上がりを使う操作','たし算のまちがい'];
 var UNREAD_MSG='うまく読めなかったよ。もう一度、ゆっくり書いてみよう。';
 // 手書き認識のしきい値（実機で様子を見て調整できます）
-var TH={maxDist:2.6,accept:1.3,rank:3,dust:0.15};
-var RELAX=false; // 同じ場所で2回「読めなかった」が続いたら、さらに甘くする
+var TH={maxDist:2.6,accept:1.2,rank:2,dust:0.15};
+var RELAX=false;
 
+var SAMPLE_KEY='hissan_samples_v1';
+try{var sv=window.localStorage&&localStorage.getItem(SAMPLE_KEY);if(sv)HW.importSamples(sv);}catch(e){}
+function saveSamples(){try{localStorage.setItem(SAMPLE_KEY,HW.exportSamples());}catch(e){}}
+var padOn=false;
 var M=null,S=null;
-var stats={unread:0}; CATS.forEach(function(c){stats[c]=0;});
+var stats={unread:0};BASE_CATS.forEach(function(c){stats[c]=0;});
 var mistakes=[];
 var cellPx=90,cardW=1,cardH=1,dpr=1;
 
 function $(s){return document.querySelector(s);}
 var card=$('#paper'),cv=$('#ink'),ctx=cv.getContext('2d');
-
 function rep(x,n){return new Array(n+1).join(x+'＋').slice(0,-1);}
 function seqText(y,n){var r=[];for(var i=1;i<=n;i++)r.push(y*i);return r.join('、');}
-function validProblem(p){return p&&Number.isInteger(p.a)&&Number.isInteger(p.b)&&p.a>=10&&p.a<=99&&p.b>=2&&p.b<=9;}
+function digitsOf(n){return String(n).split('').reverse().map(Number);}
+function dset(n){return String(Math.abs(n)).split('').map(Number);}
 
+/* =========================================================
+   問題のモデル（桁数に関係なく動く）
+   ========================================================= */
 function makeModel(a,b){
-  var t=Math.floor(a/10),o=a%10,p=o*b,pO=p%10,pT=Math.floor(p/10);
-  var q=t*b,s=q+pT,sO=s%10,sT=Math.floor(s/10);
-  var steps=['writeOnes'];
-  if(pT>0) steps.push('writeCarry');
-  steps.push('writeTens','done');
-  return {a:a,b:b,t:t,o:o,p:p,pO:pO,pT:pT,q:q,s:s,sO:sO,sT:sT,ans:a*b,steps:steps};
+  var A=digitsOf(a),B=digitsOf(b),m=A.length,n=B.length,steps=[],rows=[],r,i,c;
+  for(r=0;r<n;r++){
+    var cin=0,digs={};
+    for(i=0;i<m;i++){
+      var base=A[i]*B[r],v=base+cin,last=(i===m-1);
+      var st={type:'mul',r:r,i:i,A:A[i],B:B[r],cin:cin,base:base,v:v,last:last,targets:[]};
+      if(!last){
+        var cout=Math.floor(v/10);
+        st.cout=cout;st.targets=[{key:'pp-'+r+'-'+(i+r),val:v%10}];
+        digs[i+r]=v%10;
+        steps.push(st);
+        if(cout>0) steps.push({type:'carry',r:r,i:i,j:i+1,cout:cout,v:v,A:A[i],B:B[r],targets:[{key:'cy-'+r+'-'+(i+1),val:cout}]});
+        cin=cout;
+      }else{
+        if(v>=10){
+          st.targets=[{key:'pp-'+r+'-'+(i+r+1),val:Math.floor(v/10)},{key:'pp-'+r+'-'+(i+r),val:v%10}];
+          digs[i+r+1]=Math.floor(v/10);
+        }else st.targets=[{key:'pp-'+r+'-'+(i+r)}].map(function(t){t.val=v;return t;});
+        digs[i+r]=v%10;
+        steps.push(st);
+      }
+    }
+    rows.push(digs);
+  }
+  var ans=a*b,cols=String(ans).length;
+  rows.forEach(function(d){Object.keys(d).forEach(function(k){cols=Math.max(cols,parseInt(k,10)+1);});});
+  if(n===2){
+    var cs=0;
+    for(c=0;c<cols;c++){
+      var x=rows[0][c],y=rows[1][c],has0=x!==undefined,has1=y!==undefined;
+      x=x||0;y=y||0;
+      var v2=x+y+cs;
+      steps.push({type:'add',c:c,x:x,y:y,has0:has0,has1:has1,cin:cs,v:v2,targets:[{key:'sm-'+c,val:v2%10}]});
+      var co=Math.floor(v2/10);
+      if(co>0&&c+1<cols) steps.push({type:'addcarry',c:c,cout:co,v:v2,targets:[{key:'ac-'+(c+1),val:co}]});
+      cs=co;
+    }
+  }
+  // くり上がりを「使う」手順の番号（使ったあとに ✓ を付けるため）
+  var use={};
+  steps.forEach(function(s,k){
+    if(s.type==='carry'){
+      steps.forEach(function(t,k2){if(t.type==='mul'&&t.r===s.r&&t.i===s.j)use[s.targets[0].key]=k2;});
+    }
+    if(s.type==='addcarry'){
+      steps.forEach(function(t,k2){if(t.type==='add'&&t.c===s.c+1)use[s.targets[0].key]=k2;});
+    }
+  });
+  steps.push({type:'done',targets:[]});
+  return {a:a,b:b,A:A,B:B,m:m,n:n,rows:rows,cols:cols,ans:ans,steps:steps,use:use};
 }
 function cur(){return M.steps[S.idx];}
-function reached(id){var k=M.steps.indexOf(id);return k>=0&&k<S.idx;}
+function writing(st){return st&&st.type!=='done';}
+function colOfKey(k){var p=k.split('-');return parseInt(p[p.length-1],10);}
+
+/* ---- ランダム出題 ---- */
+function rd(lo,hi){return lo+Math.floor(Math.random()*(hi-lo+1));}
+function hasCarry(mod){return mod.steps.some(function(s){return s.type==='carry'||(s.type==='mul'&&s.last&&s.v>=10);});}
+function hasCarryStep(mod){return mod.steps.some(function(s){return s.type==='carry';});}
+function genProblem(type,cm){
+  var sp=TYPES[type],m=sp[0],n=sp[1],tries,a,b,i;
+  for(tries=0;tries<500;tries++){
+    var bd=[],ad=[];
+    if(cm==='no'){
+      for(i=0;i<n;i++)bd.push(rd(2,4));
+      var mx=Math.max.apply(null,bd),amax=Math.max(1,Math.floor(9/mx));
+      for(i=0;i<m;i++)ad.push(rd(1,amax));
+    }else{
+      for(i=0;i<n;i++)bd.push(rd(2,9));
+      for(i=0;i<m;i++)ad.push(rd(1,9));
+    }
+    a=parseInt(ad.join(''),10);b=parseInt(bd.join(''),10);
+    if(cm==='any')return {a:a,b:b};
+    var hc=hasCarry(makeModel(a,b));
+    if(cm==='yes'&&hasCarryStep(makeModel(a,b)))return {a:a,b:b};
+    if(cm==='no'&&!hc)return {a:a,b:b};
+  }
+  return {a:cm==='no'?(m===2?21:m===3?121:12):23,b:cm==='no'?(n===2?12:2):4};
+}
 
 /* =========================================================
    画面：筆算用紙
    ========================================================= */
-function targets(id){
-  function el(k){return document.querySelector('[data-slot="'+k+'"]');}
-  if(id==='writeOnes') return [{key:'ans-o',el:el('ans-o'),val:M.pO}];
-  if(id==='writeCarry') return [{key:'carry',el:el('carry'),val:M.pT}];
-  if(id==='writeTens'){
-    if(M.sT>0) return [{key:'ans-h',el:el('ans-h'),val:M.sT},{key:'ans-t',el:el('ans-t'),val:M.sO}];
-    return [{key:'ans-t',el:el('ans-t'),val:M.sO}];
-  }
-  return [];
+function slotByKey(k){return document.querySelector('[data-slot="'+k+'"]');}
+function targets(st){
+  return (st.targets||[]).map(function(t){return {key:t.key,val:t.val,el:slotByKey(t.key)};});
+}
+function layoutRows(n){
+  if(n===1) return {tpl:'auto calc(var(--cell)*.95) var(--cell) var(--cell) .55rem calc(var(--cell)*1.2)',cy:{0:2},mc:3,mu:4,r1:5,pp:{0:6},units:4.15,fixed:2.2};
+  return {tpl:'auto calc(var(--cell)*.7) calc(var(--cell)*.7) var(--cell) var(--cell) .5rem calc(var(--cell)*1.05) calc(var(--cell)*1.05) .5rem calc(var(--cell)*.6) calc(var(--cell)*1.15)',
+          cy:{1:2,0:3},mc:4,mu:5,r1:6,pp:{0:7,1:8},r2:9,ac:10,sm:11,units:7.25,fixed:3.3};
 }
 function boardHTML(){
-  var id=cur(),m=M,hasH=m.ans>=100,cols=hasH?['h','t','o']:['t','o'];
-  function ci(c){return cols.indexOf(c)+2;}
-  var ring=RING[id]||null,tg={};
-  targets(id).forEach(function(t){tg[t.key]=true;});
-  function cell(r,c,cls,inner,attr){
-    return '<div class="cell '+cls+'" style="grid-row:'+r+';grid-column:'+c+'"'+(attr||'')+'>'+inner+'</div>';
-  }
-  var h='';
-  cols.forEach(function(c){
-    var on=(ring===c)||(c==='h'&&id==='writeTens'&&m.sT>0);
-    var inner=c==='o'?'①一の位':c==='t'?'②十の位<span class="arr">◀</span>':'百の位';
-    h+='<div class="hdr p-'+c+(on?' on':'')+'" style="grid-row:1;grid-column:'+ci(c)+'">'+inner+'</div>';
-  });
-  var used=m.pT>0&&reached('writeTens');
-  h+=cell(2,ci('t'),'slot carry-slot'+(tg.carry?' target':'')+(used?' used':''),
-      '<span class="ghost">小さく</span>'+(used?'<span class="tick">✓つかった</span>':'')+(id==='writeTens'&&m.pT>0?circ('c-cy'):''),' data-slot="carry"');
-  var circle=(id==='writeOnes'||id==='writeTens');
+  var st=cur(),m=M,n=m.n,cols=m.cols,L=layoutRows(n),h='',i,j,r,c;
+  var tg={};(st.targets||[]).forEach(function(t){tg[t.key]=true;});
+  var tcol={};(st.targets||[]).forEach(function(t){tcol[colOfKey(t.key)]=true;});
+  function gc(x){return cols-x+1;}
+  function cell(row,col,cls,inner,attr){return '<div class="cell '+cls+'" style="grid-row:'+row+';grid-column:'+col+'"'+(attr||'')+'>'+inner+'</div>';}
   function circ(cl){return '<svg class="circ '+cl+'" viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="50" cy="50" rx="47" ry="43" pathLength="100"/></svg>';}
-  function dg(c,v){
-    var on=circle&&ring===c;
-    return cell(3,ci(c),'digit p-'+c+' '+(ring?(ring===c?'focus':'dim'):''),v+(on?circ(c==='o'?'c-on':'c-tn'):''),' data-d="'+c+'"');
+  var mulStep=st.type==='mul',addStep=(st.type==='add'||st.type==='addcarry'),isDone=st.type==='done';
+  var circleCls=function(c){return c===0?'c-on':c===1?'c-tn':c===2?'c-hn':'c-kn';};
+  // 位の名前
+  for(c=0;c<cols;c++) h+='<div class="hdr '+COLCLS[c]+(tcol[c]?' on':'')+'" style="grid-row:1;grid-column:'+gc(c)+'">'+HDR[c]+(c===1?'<span class="arr">◀</span>':'')+'</div>';
+  // くり上がり欄（かけ算）
+  for(r=0;r<n;r++)for(j=1;j<m.m;j++){
+    var key='cy-'+r+'-'+j,u=(m.use[key]!==undefined)&&(m.use[key]<S.idx);
+    var inner='<span class="ghost">小さく</span>'+(u?'<span class="tick">✓</span>':'');
+    if(mulStep&&st.cin>0&&st.r===r&&st.i===j) inner+=circ('c-cy');
+    h+=cell(L.cy[r],gc(j),'slot carry-slot cyr'+r+(tg[key]?' target':'')+(u?' used':''),inner,' data-slot="'+key+'"');
   }
-  h+=dg('t',m.t)+dg('o',m.o);
-  h+=cell(4,1,'sign','×');
-  h+=cell(4,ci('o'),'mult',m.b+(circle?circ(ring==='o'?'c-on':'c-tn'):''));
-  h+='<div class="rule" style="grid-row:5;grid-column:1/-1"></div>';
-  var fin=id==='done'?' final':'';
-  h+=cell(6,ci('o'),'slot ans p-o'+(tg['ans-o']?' target':'')+fin,'<span class="ghost">ここ</span>',' data-slot="ans-o"');
-  h+=cell(6,ci('t'),'slot ans p-t'+(tg['ans-t']?' target':'')+fin,'<span class="ghost">ここ</span>',' data-slot="ans-t"');
-  if(hasH) h+=cell(6,ci('h'),'slot ans p-h'+(tg['ans-h']?' target':'')+fin,'<span class="ghost">ここ</span>',' data-slot="ans-h"');
-  return '<div class="board" style="grid-template-columns:var(--sign) repeat('+cols.length+',var(--cell))">'+h+'</div>';
+  // かけられる数・かける数
+  for(j=0;j<m.m;j++){
+    var on=mulStep&&st.i===j,dim=(mulStep||st.type==='carry')?!(st.i===j):(addStep);
+    h+=cell(L.mc,gc(j),'digit '+COLCLS[j]+' '+(dim?'dim':'focus'),m.A[j]+(on?circ(circleCls(j)):''),' data-d="A-'+j+'"');
+  }
+  h+=cell(L.mu,1,'sign','×');
+  for(j=0;j<n;j++){
+    var onB=mulStep&&st.r===j,dimB=(mulStep||st.type==='carry')?!(st.r===j):addStep;
+    h+=cell(L.mu,gc(j),'mult'+(dimB?' dim':''),m.B[j]+(onB?circ(mulStep&&st.i>=0?circleCls(st.i):'c-on'):''),' data-d="B-'+j+'"');
+  }
+  h+='<div class="rule" style="grid-row:'+L.r1+';grid-column:1/-1"></div>';
+  // 部分積（n=1のときは答え）
+  var fin=(isDone&&n===1)?' final':'';
+  for(r=0;r<n;r++){
+    var maxc=0;Object.keys(m.rows[r]).forEach(function(k){maxc=Math.max(maxc,parseInt(k,10));});
+    for(c=r;c<=maxc;c++){
+      var k2='pp-'+r+'-'+c,ex='';
+      if(addStep&&st.type==='add'&&st.c===c&&((r===0&&st.has0)||(r===1&&st.has1))) ex=circ(circleCls(c));
+      h+=cell(L.pp[r],gc(c),'slot ans '+COLCLS[c]+(tg[k2]?' target':'')+fin,'<span class="ghost">ここ</span>'+ex,' data-slot="'+k2+'"');
+    }
+  }
+  if(n===2){
+    h+='<div class="rule" style="grid-row:'+L.r2+';grid-column:1/-1"></div>';
+    for(c=1;c<cols;c++){
+      var k3='ac-'+c,u3=(m.use[k3]!==undefined)&&(m.use[k3]<S.idx),ex3='';
+      if(st.type==='add'&&st.c===c&&st.cin>0) ex3=circ('c-cy');
+      h+=cell(L.ac,gc(c),'slot carry-slot cyr0'+(tg[k3]?' target':'')+(u3?' used':''),'<span class="ghost">小さく</span>'+(u3?'<span class="tick">✓</span>':'')+ex3,' data-slot="'+k3+'"');
+    }
+    for(c=0;c<cols;c++){
+      var k4='sm-'+c;
+      h+=cell(L.sm,gc(c),'slot ans '+COLCLS[c]+(tg[k4]?' target':'')+(isDone?' final':''),'<span class="ghost">ここ</span>',' data-slot="'+k4+'"');
+    }
+  }
+  return '<div class="board" style="grid-template-columns:var(--sign) repeat('+cols+',var(--cellw,var(--cell)));grid-template-rows:'+L.tpl+'">'+h+'</div>';
 }
+
 /* =========================================================
-   画面：今やること・反応・ヒント
+   今やること・ヒント・解説
    ========================================================= */
-function guide(id){
-  var m=M;
-  switch(id){
-    case 'writeOnes':
-      return {text:m.o+'×'+m.b+'を 計算して、答えを書く',say:'まず、ここをかけよう！',
-              sub:m.pT>0?'答えが 2けたのときは、一の位だけ ここに書くよ。':''};
-    case 'writeCarry':
-      return {text:'繰り上がりの'+m.pT+'を 書く',say:'十の位の'+m.pT+'を、小さく上に書こう！',sub:''};
-    case 'writeTens':
-      return m.pT>0
-        ?{text:m.t+'×'+m.b+'を 計算して、繰り上がりも合わせる',say:'次は、ここをかけよう！上に書いた繰り上がりの'+m.pT+'も使うよ！',sub:m.sT>0?'2けたになったら、そのまま左のマスにも書くよ。':''}
-        :{text:m.t+'×'+m.b+'を 計算して、答えを書く',say:'次は、ここをかけよう！',sub:m.sT>0?'2けたになったら、そのまま左のマスにも書くよ。':''};
+function guide(st){
+  var m=M,n=m.n;
+  switch(st.type){
+    case 'mul':{
+      var text=st.A+'×'+st.B+'を 計算して、'+(st.cin>0?'繰り上がりも合わせる':'答えを書く'),say,sub='';
+      if(st.i===0&&st.r===0) say=n===1?'まず、ここをかけよう！':'まず、かける数の一の位の'+m.B[0]+'から！';
+      else if(st.i===0) say='つぎは、かける数の十の位の'+m.B[1]+'！ひとつ左のマスから 書くよ！';
+      else say='次は、ここをかけよう！'+(st.cin>0?'上に書いた繰り上がりの'+st.cin+'も使うよ！':'');
+      sub=st.last?(st.v>=10?'2けたになったら、そのまま左のマスにも書くよ。':''):'答えが 2けたのときは、一の位だけ ここに書くよ。';
+      return {text:text,say:say,sub:sub};}
+    case 'carry': return {text:'繰り上がりの'+st.cout+'を 書く',say:'十の位の'+st.cout+'を、小さく上に書こう！',sub:''};
+    case 'add':{
+      var parts=[];if(st.has0)parts.push(st.x);if(st.has1)parts.push(st.y);if(st.cin>0)parts.push(st.cin);
+      return {text:parts.length>1?parts.join('＋')+'を たす':'そのまま 下に書く',
+              say:st.c===0?'ここからは たし算！一の位から たそう！':(st.cin>0?'上の小さな'+st.cin+'も たすよ！':'つぎの位も たそう！'),sub:''};}
+    case 'addcarry': return {text:'たし算の繰り上がり'+st.cout+'を 書く',say:'十の位の'+st.cout+'を、となりの上に 小さく書こう！',sub:''};
   }
   return {text:'',say:'',sub:''};
 }
+function hintsFor(st){
+  switch(st.type){
+    case 'mul':{
+      var seq=st.A>1?'（'+seqText(st.B,st.A-1)+'…）':'';
+      return {l1:st.A+'×'+st.B+'を考えよう。かけ算だよ。'+st.B+'の段を 声に出してみよう。'+(st.cin>0?'そのあと、上の小さな数も 使うよ。':''),
+              l2:st.B+'の段を '+st.A+'つ目まで 数えよう。'+seq+(st.cin>0?' その答えに 繰り上がりの'+st.cin+'を たそう。':'')+(!st.last?' 答えが2けたなら、一の位だけ ここに書くよ。':'')};}
+    case 'carry': return {l1:st.v+'の 十の位の数は いくつかな？',l2:'十の位の数は、答えには 書かないで、となりの位の 上に 小さく書くよ（繰り上がり）。'};
+    case 'add':{
+      var parts=[];if(st.has0)parts.push(st.x);if(st.has1)parts.push(st.y);if(st.cin>0)parts.push(st.cin);
+      return {l1:'この 位の、上と下の数を たそう。'+(st.cin>0?'上の小さな数も わすれずに。':''),l2:parts.join('＋')+'は いくつかな？'};}
+    case 'addcarry': return {l1:'たし算の答えが 2けたになったよ。',l2:'十の位の数は、となりの位の 上に 小さく書くよ。'};
+  }
+  return {l1:'',l2:''};
+}
+function detailHTML(st){
+  var m=M;
+  switch(st.type){
+    case 'mul':{
+      var h='<p>'+st.A+'×'+st.B+'は「'+st.A+'を'+st.B+'回たす」ことと同じ数です。</p><p>'+rep(st.A,st.B)+'＝<b>'+st.base+'</b></p>';
+      if(st.cin>0) h+='<p>ここで 上の小さな <b>'+st.cin+'</b>（繰り上がり）も 使います。'+st.base+' ＋ '+st.cin+' ＝ <b>'+st.v+'</b></p>';
+      if(st.r===1&&st.i===0) h+='<p>かける数の十の位の計算なので、答えは ひとつ左の マスから 書きます。</p>';
+      h+=st.last?(st.v>=10?'<p>最後の位なので、'+st.v+'を そのまま 左のマスにも 書きます。</p>':'<p><b>'+st.v+'</b> を ここに書きます。</p>')
+                :(st.v>=10?'<p>'+st.v+'は 2けた。1つのマスには 1つしか書けないので、一の位の <b>'+(st.v%10)+'</b> をここに書きます。十の位の <b>'+st.cout+'</b> は、次に 小さく上に書きます。</p>':'<p><b>'+st.v+'</b> を ここに書きます。繰り上がりは ありません。</p>');
+      return h;}
+    case 'carry': return '<p>'+st.v+'の 十の位の <b>'+st.cout+'</b> は、答えには書かず、となりの位の 上に 小さく書きます。</p><p>これが「繰り上がり」。次の位の計算で 使います。</p>';
+    case 'add':{
+      var ps=[];if(st.has0)ps.push(st.x);if(st.has1)ps.push(st.y);if(st.cin>0)ps.push(st.cin);
+      return '<p>'+PLACE[st.c]+'のたし算：'+ps.join('＋')+' ＝ <b>'+st.v+'</b></p>'+(st.v>=10?'<p>2けたなので、一の位の <b>'+(st.v%10)+'</b> を書いて、十の位の1は となりの上に 小さく書きます。</p>':'<p><b>'+st.v+'</b> を 下に書きます。</p>');}
+    case 'addcarry': return '<p>たし算の答えが 2けたのときは、十の位の <b>'+st.cout+'</b> を、となりの位の 上に 小さく書いて、次の位のたし算で 使います。</p>';
+  }
+  return '';
+}
+function okText(st){
+  switch(st.type){
+    case 'mul':
+      if(st.cin>0) return st.last&&st.v>=10?'そう！'+st.base+'＋'+st.cin+'＝'+st.v+'。最後の位だから そのまま書けたね！':'そう！'+st.base+'に繰り上がりの'+st.cin+'を合わせて '+st.v+'だね！';
+      return st.last?'そう！'+st.A+'×'+st.B+'＝'+st.v+'！':'そう！'+st.A+'×'+st.B+'＝'+st.v+'。'+(st.v>=10?'一の位の'+(st.v%10)+'を 書けたね！':'繰り上がりは ないよ！');
+    case 'carry': return '繰り上がりも書けたね！';
+    case 'add':{
+      var ps=[];if(st.has0)ps.push(st.x);if(st.has1)ps.push(st.y);if(st.cin>0)ps.push(st.cin);
+      return ps.length>1?'そう！'+ps.join('＋')+'＝'+st.v+'！':'そう！そのまま 下に書けたね！';}
+    case 'addcarry': return 'くり上がりも書けたね！';
+  }
+  return '';
+}
+function catOf(st,kind){
+  if(kind==='place'||kind==='multi') return '答えの数字の配置';
+  if(st.type==='mul') return PLACE[Math.min(st.i,2)]+'の掛け算';
+  if(st.type==='carry') return '繰り上がりの記入';
+  if(st.type==='addcarry') return '繰り上がりの記入';
+  return 'たし算のまちがい';
+}
+
+/* =========================================================
+   画面の描画
+   ========================================================= */
 function renderNow(){
-  var id=cur(),h='';
-  if(id==='done'){
-    var lines=['一の位から計算できたね！',M.pT>0?'繰り上がりも忘れずに使えたね！':'繰り上がりが ないことも たしかめられたね！',
-      S.mis===0?'まちがいゼロ！すばらしい！':'まちがえたところも、ちゃんと直せたね！'];
+  var st=cur(),h='';
+  if(st.type==='done'){
+    var carries=M.steps.some(function(s){return s.type==='carry';});
+    var lines=['一の位から計算できたね！',carries?'繰り上がりも忘れずに使えたね！':'繰り上がりが ないことも たしかめられたね！'];
+    if(M.n===2) lines.push('たし算も できたね！');
+    lines.push(S.mis===0?'まちがいゼロ！すばらしい！':'まちがえたところも、ちゃんと直せたね！');
     h='<div class="now-main"><span class="num">🎉</span><span>できた！ '+M.a+'×'+M.b+'＝'+M.ans+'！</span></div>'+
-      '<p class="praise">'+lines.join('<br>')+'<br>たし算でも たしかめられるよ：'+rep(M.a,M.b)+'＝'+M.ans+'</p>'+
+      '<p class="praise">'+lines.join('<br>')+(M.n===1?'<br>たし算でも たしかめられるよ：'+rep(M.a,M.b)+'＝'+M.ans:'')+'</p>'+
       '<button class="btn" data-act="nextProblem">つぎの もんだい ▶</button>';
   }else{
-    var g=guide(id),n=M.steps.length-1,dots='';
+    var g=guide(st),n=M.steps.length-1,dots='';
     for(var i=0;i<n;i++) dots+='<span class="dot '+(i<S.idx?'done':(i===S.idx?'cur':''))+'"></span>';
     h='<div class="dots" aria-hidden="true">'+dots+'</div>'+
-      '<div class="now-main"><span class="num">'+CIRC[S.idx]+'</span><span>'+g.text+'</span></div>';
+      '<div class="now-main"><span class="num">'+(CIRCS[S.idx]||(S.idx+1))+'</span><span>'+g.text+'</span></div>';
   }
   $('#now').innerHTML=h;
 }
-function anchorKey(){var T=targets(cur());return T.length?T[0].key:'ans-o';}
-function slotByKey(k){return document.querySelector('[data-slot="'+k+'"]');}
+function renderPick(){
+  var h='<div class="pick-t">もんだいを えらぶ（ランダム）</div><div class="pick-grid">';
+  Object.keys(TYPES).forEach(function(k){h+='<button class="pbtn" data-act="gen" data-t="'+k+'" aria-pressed="'+(cfg.type===k)+'">'+TYPE_NAMES[k]+'</button>';});
+  h+='</div><div class="pick-t">くり上がり</div><div class="pick-cm">';
+  Object.keys(CM_NAMES).forEach(function(k){h+='<button class="pbtn sm" data-act="cm" data-v="'+k+'" aria-pressed="'+(cfg.cm===k)+'">'+CM_NAMES[k]+'</button>';});
+  h+='</div><div class="pick-row"><button class="chip tool" data-act="drawer">せつめい・きろく</button><button class="chip tool" data-act="big">大きく</button></div>';
+  $('#pick').innerHTML=h;
+}
 function renderReact(){
-  var id=cur();
-  $('#teacherOkBtn').hidden=!(WRITE[id]&&(S.unread[id]||0)>=2);
+  var canTeach=!!(S.teach&&S.teach.step===S.idx);
+  $('#teacherOkBtn').hidden=!(writing(cur())&&(canTeach||(S.unread[S.idx]||0)>=2));
+  $('#teacherOkBtn').innerHTML=canTeach?'先生が「OK」にする<small>この字を おぼえさせる</small>':'先生が「OK」にする';
   renderBubbles();
 }
+function anchorKey(){var T=cur().targets||[];return T.length?T[0].key:'pp-0-0';}
 function renderBubbles(){
-  var box=$('#bubbles');
-  box.innerHTML='';
-  if(!M||!S) return;
-  var id=cur(),items=[];
-  if(WRITE[id]){
-    var g=guide(id);
-    var anc=id==='writeCarry'?slotByKey('carry'):document.querySelector('[data-d="'+RING[id]+'"]');
-    items.push({kind:'say',html:g.say+(g.sub?'<small>'+g.sub+'</small>':''),anchor:anc});
+  var box=$('#bubbles');box.innerHTML='';
+  if(!M||!S)return;
+  var st=cur(),items=[];
+  if(writing(st)){
+    var g=guide(st),anc;
+    if(st.type==='mul') anc=document.querySelector('[data-d="A-'+st.i+'"]');
+    else anc=slotByKey(st.targets[0].key);
+    items.push({kind:'say',html:g.say+((g.sub&&(S.lv[S.idx]||0)>=1)?'<small>'+g.sub+'</small>':''),anchor:anc});
   }
-  if(S.fb){
-    items.push({kind:S.fb.kind,html:(S.fb.kind==='ok'?'◎ ':'💡 ')+S.fb.text,anchor:slotByKey(S.fb.anchor||'ans-o')});
-  }
+  if(S.fb) items.push({kind:S.fb.kind,html:(S.fb.kind==='ok'?'◎ ':'💡 ')+S.fb.text,anchor:slotByKey(S.fb.anchor||'pp-0-0')});
   var bc=relRect($('#bcol')),placed=[];
   items.forEach(function(it){
     var el=document.createElement('div');
@@ -529,9 +784,7 @@ function renderBubbles(){
     el.style.left=bc.x+'px';el.style.width=bc.w+'px';
     var h=el.offsetHeight,a=it.anchor?relRect(it.anchor):{y:cardH/2,h:0};
     var cy=a.y+a.h/2,top=cy-h/2;
-    placed.forEach(function(p){
-      if(top<p.top+p.h+8&&top+h>p.top-8) top=(cy<p.cy)?p.top-h-8:p.top+p.h+8;
-    });
+    placed.forEach(function(p){if(top<p.top+p.h+8&&top+h>p.top-8)top=(cy<p.cy)?p.top-h-8:p.top+p.h+8;});
     top=Math.max(6,Math.min(cardH-h-6,top));
     el.style.top=top+'px';
     el.style.setProperty('--ty',Math.max(16,Math.min(h-16,cy-top))+'px');
@@ -541,79 +794,74 @@ function renderBubbles(){
 var drawerMode='';
 function renderDetail(){
   var dr=$('#drawer');
-  if(S.detail&&WRITE[cur()]){
+  if(S.detail&&writing(cur())){
     $('#sheet').innerHTML='<h2>先生といっしょに 見てみよう</h2>'+detailHTML(cur())+'<p><button class="btn" data-act="closeDetail">とじる</button></p>';
     dr.hidden=false;drawerMode='detail';
   }else if(drawerMode==='detail'){dr.hidden=true;drawerMode='';}
 }
-function renderChips(){
-  var h='<select id="probSel" aria-label="もんだい">';
-  problems.forEach(function(p,i){h+='<option value="'+i+'"'+(S.pi===i?' selected':'')+'>'+p.a+'×'+p.b+'</option>';});
-  h+='</select><button class="chip tool" data-act="drawer">せつめい・きろく</button><button class="chip tool" data-act="big">大きく</button>';
-  $('#chips').innerHTML=h;
+function renderPad(){
+  var p=$('#padPanel');
+  p.hidden=!padOn;
+  $('#bPad').setAttribute('aria-pressed',padOn);
+  if(!padOn){p.innerHTML='';return;}
+  var h='<div class="pick-t">数字ボタン（書けないとき）</div><div class="padg">';
+  [7,8,9,4,5,6,1,2,3].forEach(function(d){h+='<button class="nbtn" data-act="num" data-d="'+d+'">'+d+'</button>';});
+  h+='<button class="nbtn del" data-act="numdel">⌫ けす</button><button class="nbtn" data-act="num" data-d="0">0</button><button class="nbtn del" data-act="numclear">ぜんぶ<br>けす</button></div>';
+  p.innerHTML=h;
+}
+function typedOfStep(){return S.ink.filter(function(s){return s.typed&&s.step===S.idx&&!s.bad;});}
+function pressNum(d){
+  var st=cur();if(!writing(st))return;
+  var T=st.targets,tp=typedOfStep();
+  if(tp.length>=T.length)return;
+  // 手書きの線があれば、ボタン入力にきりかえる
+  S.ink=S.ink.filter(function(s){return !(s.step===S.idx&&!s.typed&&!s.bad);});
+  clearTimeout(S.evalTimer);clearTimeout(S.waitTimer);clearHere();
+  S.ink.push({typed:true,key:T[tp.length].key,d:d,step:S.idx,p:[],bad:false});
+  layoutMeasure();redrawInk();
+  if(tp.length+1===T.length)evaluateTyped();
+}
+function numDel(){var tp=typedOfStep();if(!tp.length)return;S.ink.splice(S.ink.indexOf(tp[tp.length-1]),1);redrawInk();}
+function numClear(){S.ink=S.ink.filter(function(s){return !(s.typed&&s.step===S.idx);});redrawInk();}
+function evaluateTyped(){
+  var st=cur(),T=targets(st),tp=typedOfStep(),bad=-1,i;
+  for(i=0;i<T.length;i++)if(tp[i].d!==T[i].val){bad=i;break;}
+  if(bad<0){solveStep('');return;}
+  var d=tp[bad].d,w=boardWrong(st,{read:{top:d},bad:{kind:'digit'}},T,[]);
+  S.lv[S.idx]=Math.min(3,(S.lv[S.idx]||0)+1);
+  logMistake(catOf(st,'digit'),'ボタンで「'+d+'」'+(w.add?'（たし算かも）':''));
+  tp.forEach(function(o){o.bad=true;});redrawInk();
+  setTimeout(function(){S.ink=S.ink.filter(function(o){return !o.bad;});redrawInk();},750);
+  showHint(st,w.text);
 }
 function renderTools(){
   $('#bPen').setAttribute('aria-pressed',S.tool==='pen');
   $('#bEraser').setAttribute('aria-pressed',S.tool==='erase');
 }
+function fitCell(){
+  var rem=parseFloat(getComputedStyle(document.documentElement).fontSize)||16;
+  var cs=getComputedStyle(card),px=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0),py=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+  var cw=card.clientWidth-px,ch=card.clientHeight-py;
+  if(cw<200||ch<200)return;
+  var L=layoutRows(M.n),cols=M.cols,dock=document.querySelector('.dock'),dw=(dock?dock.offsetWidth:0)+0.6*rem;
+  var availW=cw-dw-9*rem-0.6*rem-cols*0.3*rem;
+  var cW=availW/(0.55+cols),cH=(ch-L.fixed*rem)/L.units;
+  var c=Math.max(44,Math.min(230,cW,cH));
+  var extra=availW-(0.55+cols)*c,wide=c;
+  if(extra>0)wide=Math.min(c*1.3,c+extra/cols);
+  document.documentElement.style.setProperty('--cell',c+'px');
+  document.documentElement.style.setProperty('--cellw',wide+'px');
+}
 function renderAll(){
   clearHere();
-  renderChips();
+  renderPick();
   $('#board').innerHTML=boardHTML();
-  renderNow();renderDetail();renderTools();
-  cv.className=(cur()==='done')?'off':'';
+  fitCell();
+  renderNow();renderDetail();renderTools();renderPad();
+  cv.className=writing(cur())?'':'off';
   layoutInk();
   renderReact();
-  if(window.requestAnimationFrame) requestAnimationFrame(function(){layoutInk();renderBubbles();});
-}
-
-/* =========================================================
-   ヒント（3だんかい：①さいしょのヒント → ②九九・繰り上がりを思い出す → ③くわしい解説）
-   ========================================================= */
-function hintsFor(id){
-  var m=M;
-  switch(id){
-    case 'writeOnes': return {
-      l1:m.o+'×'+m.b+'を考えよう。かけ算だよ。'+m.b+'の段を 声に出してみよう。',
-      l2:m.b+'の段を '+m.o+'つ目まで 数えよう。'+(m.o>1?'（'+seqText(m.b,m.o-1)+'…）':'')+(m.pT>0?' 答えが2けたなら、一の位だけ ここに書くよ。':'')};
-    case 'writeCarry': return {
-      l1:m.p+'の 十の位の数は いくつかな？',
-      l2:'十の位の数は、答えには 書かないで、十の位の 上に 小さく書くよ（繰り上がり）。'};
-    case 'writeTens': return m.pT>0?{
-      l1:m.t+'×'+m.b+'を考えよう。そのあと、上に書いた小さな数も 使うよ。',
-      l2:m.b+'の段を '+m.t+'つ目まで 数えて、その答えに 繰り上がりの'+m.pT+'を たそう。'}:{
-      l1:m.t+'×'+m.b+'を考えよう。かけ算だよ。',
-      l2:m.b+'の段を '+m.t+'つ目まで 数えよう。'+(m.t>1?'（'+seqText(m.b,m.t-1)+'…）':'')};
-  }
-  return {l1:'',l2:''};
-}
-function detailHTML(id){
-  var m=M;
-  switch(id){
-    case 'writeOnes':
-      return '<p>'+m.o+'×'+m.b+'は「'+m.o+'を'+m.b+'回たす」ことと同じ数です。</p><p>'+rep(m.o,m.b)+'＝<b>'+m.p+'</b></p>'+
-        (m.pT>0?'<p>'+m.p+'は 2けた。一の位のマスには 1つしか書けないので、一の位の <b>'+m.pO+'</b> をここに書きます。十の位の <b>'+m.pT+'</b> は、次に 小さく上に書きます（繰り上がり）。</p>'
-               :'<p>'+m.p+'は 1けたなので、そのまま ここに書きます。繰り上がりは ありません。</p>');
-    case 'writeCarry': return '<p>'+m.p+'の 十の位の <b>'+m.pT+'</b> は、答えには書かず、十の位の 上に 小さく書きます。</p><p>これが「繰り上がり」。次の 十の位の計算で 使います。</p>';
-    case 'writeTens':
-      if(m.pT>0) return '<p>'+m.t+'×'+m.b+'＝<b>'+m.q+'</b>（'+rep(m.t,m.b)+'）。ここで 上の小さな <b>'+m.pT+'</b>（繰り上がり）も 使います。</p><p>'+m.q+' ＋ '+m.pT+' ＝ <b>'+m.s+'</b></p><p>'+(m.sT>0?m.s+'は 最後の位なので、そのまま 左のマスにも 書きます（'+m.sT+'と'+m.sO+'）。':m.s+'を 答えの十の位に 書きます。')+'</p>';
-      return '<p>繰り上がりは ありません。'+m.t+'×'+m.b+'＝<b>'+m.q+'</b> を 答えの十の位に 書きます。</p>';
-  }
-  return '';
-}
-function showHint(id,spec){
-  var lv=S.lv[id]||0,hs=hintsFor(id),parts=[];
-  if(spec) parts.push(spec);
-  else if(lv===1) parts.push(hs.l1);
-  if(lv>=2) parts.push(hs.l2);
-  if(lv>=3){S.detail=true;parts.push('下の かいせつを 先生と いっしょに 見てみよう。');}
-  S.fb={kind:'hint',text:parts.join(' '),anchor:anchorKey()};
-  renderReact();renderDetail();
-}
-function giveHint(){
-  var id=cur();if(!WRITE[id])return;
-  S.lv[id]=Math.min(3,(S.lv[id]||0)+1);
-  showHint(id,null);
+  if(window.requestAnimationFrame)requestAnimationFrame(function(){layoutInk();renderBubbles();});
 }
 
 /* =========================================================
@@ -623,8 +871,7 @@ function lineW(){return Math.max(4,cellPx*0.055);}
 function layoutMeasure(){
   var r=card.getBoundingClientRect();
   cardW=r.width||1;cardH=r.height||1;
-  var d=document.querySelector('.digit');
-  var h=d?d.getBoundingClientRect().height:0;
+  var d=document.querySelector('.digit'),h=d?d.getBoundingClientRect().height:0;
   cellPx=h>10?h:90;
 }
 function layoutInk(){
@@ -635,30 +882,33 @@ function layoutInk(){
   redrawInk();
 }
 function drawStroke(s){
+  if(s.typed){
+    var el=slotByKey(s.key);if(!el)return;
+    var rc=relRect(el),fs=Math.round(Math.min(rc.h,cellPx*1.2)*0.8);
+    ctx.font='700 '+fs+'px "UD Digi Kyokasho N-R","UD デジタル 教科書体 N-R","Hiragino Maru Gothic ProN","Yu Gothic UI",sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle=s.bad?'#E8821A':'#2A2F45';
+    ctx.fillText(String(s.d),rc.x+rc.w/2,rc.y+rc.h/2+fs*0.04);
+    return;
+  }
   var pts=s.p,i;if(!pts.length)return;
   ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=lineW();
   ctx.strokeStyle=s.bad?'#E8821A':'#2A2F45';ctx.fillStyle=ctx.strokeStyle;
   if(pts.length===1){ctx.beginPath();ctx.arc(pts[0].x*cardW,pts[0].y*cardH,lineW()/2,0,6.2832);ctx.fill();return;}
   ctx.beginPath();ctx.moveTo(pts[0].x*cardW,pts[0].y*cardH);
-  for(i=1;i<pts.length;i++) ctx.lineTo(pts[i].x*cardW,pts[i].y*cardH);
+  for(i=1;i<pts.length;i++)ctx.lineTo(pts[i].x*cardW,pts[i].y*cardH);
   ctx.stroke();
 }
-function redrawInk(){
-  ctx.clearRect(0,0,cardW,cardH);
-  S.ink.forEach(drawStroke);
-}
+function redrawInk(){ctx.clearRect(0,0,cardW,cardH);S.ink.forEach(drawStroke);}
 function flashRemove(objs){
   if(!objs||!objs.length)return;
-  objs.forEach(function(o){o.bad=true;});
-  redrawInk();
+  objs.forEach(function(o){o.bad=true;});redrawInk();
   setTimeout(function(){S.ink=S.ink.filter(function(o){return !o.bad;});redrawInk();},750);
 }
 function silentRemove(objs){
   if(!objs||!objs.length)return;
-  S.ink=S.ink.filter(function(o){return objs.indexOf(o)<0;});
-  redrawInk();
+  S.ink=S.ink.filter(function(o){return objs.indexOf(o)<0;});redrawInk();
 }
-
 var drawing=null,pid=null;
 function pt(e){var r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)/(r.width||1),y:(e.clientY-r.top)/(r.height||1)};}
 function segDist(p,a,b){
@@ -669,49 +919,44 @@ function segDist(p,a,b){
 function eraseAt(p){
   var px={x:p.x*cardW,y:p.y*cardH},rad=cellPx*0.4,changed=false;
   S.ink=S.ink.filter(function(s){
-    if(s.step!==S.idx||s.bad) return true;
+    if(s.step!==S.idx||s.bad||s.typed)return true;
     var pts=s.p.map(function(q){return {x:q.x*cardW,y:q.y*cardH};}),hit=false;
-    if(pts.length===1) hit=Math.hypot(px.x-pts[0].x,px.y-pts[0].y)<rad;
-    for(var i=1;i<pts.length&&!hit;i++) if(segDist(px,pts[i-1],pts[i])<rad) hit=true;
+    if(pts.length===1)hit=Math.hypot(px.x-pts[0].x,px.y-pts[0].y)<rad;
+    for(var i=1;i<pts.length&&!hit;i++)if(segDist(px,pts[i-1],pts[i])<rad)hit=true;
     if(hit)changed=true;
     return !hit;
   });
-  if(changed) redrawInk();
+  if(changed)redrawInk();
 }
 function onPenDown(p){
-  var id=cur();if(!WRITE[id])return;
-  var T=targets(id),px={x:p.x*cardW,y:p.y*cardH},near=false,hit=null;
+  var st=cur();if(!writing(st))return;
+  var T=targets(st),px={x:p.x*cardW,y:p.y*cardH},near=false,hit=null;
   T.forEach(function(t){
     if(!t.el)return;
     var rc=relRect(t.el);
-    if(inRect({cx:px.x,cy:px.y},rc,0.5)) hit=t;
-    if(Math.hypot(px.x-(rc.x+rc.w/2),px.y-(rc.y+rc.h/2))<cellPx*2.6) near=true;
+    if(inRect({cx:px.x,cy:px.y},rc,0.5))hit=t;
+    if(Math.hypot(px.x-(rc.x+rc.w/2),px.y-(rc.y+rc.h/2))<cellPx*2.6)near=true;
   });
-  if(hit) hit.el.classList.add('touching');
-  else if(!near&&T[0]&&T[0].el) showHere(T[0].el,'ここやで！');
+  if(hit)hit.el.classList.add('touching');
+  else if(!near&&T[0]&&T[0].el)showHere(T[0].el,'ここやで！');
 }
-function clearTouching(){
-  var l=document.querySelectorAll('.touching');
-  for(var i=0;i<l.length;i++) l[i].classList.remove('touching');
-}
+function clearTouching(){var l=document.querySelectorAll('.touching');for(var i=0;i<l.length;i++)l[i].classList.remove('touching');}
 cv.addEventListener('pointerdown',function(e){
-  if(pid!==null||cur()==='done')return;
-  e.preventDefault();
-  pid=e.pointerId;
+  if(pid!==null||!writing(cur()))return;
+  e.preventDefault();pid=e.pointerId;
   try{cv.setPointerCapture(pid);}catch(_){}
   clearTimeout(S.evalTimer);clearTimeout(S.waitTimer);clearHere();
   var p=pt(e);
   if(S.tool==='erase'){eraseAt(p);return;}
+  S.ink=S.ink.filter(function(s){return !(s.typed&&s.step===S.idx);});
   drawing={p:[p],step:S.idx,bad:false};
-  S.ink.push(drawing);
-  drawStroke(drawing);
-  onPenDown(p);
+  S.ink.push(drawing);drawStroke(drawing);onPenDown(p);
 });
 cv.addEventListener('pointermove',function(e){
   if(e.pointerId!==pid)return;
   e.preventDefault();
   var evs=(e.getCoalescedEvents&&e.getCoalescedEvents())||[e];
-  if(!evs.length) evs=[e];
+  if(!evs.length)evs=[e];
   for(var k=0;k<evs.length;k++){
     var p=pt(evs[k]);
     if(S.tool==='erase'){eraseAt(p);continue;}
@@ -724,14 +969,11 @@ cv.addEventListener('pointermove',function(e){
 });
 function penUp(e){
   if(e.pointerId!==pid)return;
-  pid=null;
-  clearTouching();
-  var wasDrawing=!!drawing;
-  drawing=null;
+  pid=null;clearTouching();
+  var was=!!drawing;drawing=null;
   if(S.tool==='erase'){redrawInk();return;}
-  if(wasDrawing){
-    var id=cur();
-    var slow=(id==='writeTens'&&M.sT>0);
+  if(was){
+    var st=cur(),slow=(st.targets||[]).length>1;
     clearTimeout(S.evalTimer);
     S.evalTimer=setTimeout(function(){evaluate(false);},slow?1000:700);
   }
@@ -740,18 +982,15 @@ cv.addEventListener('pointerup',penUp);
 cv.addEventListener('pointercancel',penUp);
 cv.addEventListener('contextmenu',function(e){e.preventDefault();});
 
-/* ---- 「ここやで！」 ---- */
 var hereEl=null,hereTarget=null,hereTimer=null;
 function clearHere(){
-  if(hereEl&&hereEl.parentNode) hereEl.parentNode.removeChild(hereEl);
+  if(hereEl&&hereEl.parentNode)hereEl.parentNode.removeChild(hereEl);
   hereEl=null;
-  if(hereTarget) hereTarget.classList.remove('here-target');
-  hereTarget=null;
-  clearTimeout(hereTimer);
+  if(hereTarget)hereTarget.classList.remove('here-target');
+  hereTarget=null;clearTimeout(hereTimer);
 }
 function showHere(el,text){
-  clearHere();
-  if(!el) return;
+  clearHere();if(!el)return;
   var r=el.getBoundingClientRect(),d=document.createElement('div'),below=r.top<90;
   d.className='here';
   d.innerHTML=below?'<span class="tip">▲</span><span class="bub">'+text+'</span>':'<span class="bub">'+text+'</span><span class="tip">▼</span>';
@@ -759,8 +998,7 @@ function showHere(el,text){
   var w=d.offsetWidth,h=d.offsetHeight;
   d.style.left=Math.max(4,Math.min(window.innerWidth-w-4,r.left+r.width/2-w/2))+'px';
   d.style.top=Math.max(4,below?r.bottom+4:r.top-h-4)+'px';
-  el.classList.add('here-target');
-  hereEl=d;hereTarget=el;
+  el.classList.add('here-target');hereEl=d;hereTarget=el;
   hereTimer=setTimeout(clearHere,4200);
 }
 
@@ -779,8 +1017,16 @@ function toPx(s){return s.p.map(function(q){return {x:q.x*cardW,y:q.y*cardH};});
 function mkRead(r){
   var top=r.cand[0];
   var o={top:top.d,dist:top.dist,conf:top.dist<=TH.maxDist};
-  function idx(e){for(var i=0;i<r.cand.length;i++) if(r.cand[i].d===e) return i;return 99;}
-  // 書こうとしている数字（e）らしければ、少しくずれていても「合っている」とみなす
+  function idx(e){for(var i=0;i<r.cand.length;i++)if(r.cand[i].d===e)return i;return 99;}
+  // 書こうとしている数字（e）と、まちがえやすい数字（rivals）をくらべる。
+  // 8と9のようにまぎらわしいときは、決めつけずに「もう一度」と案内する。
+  o.judge=function(e,rivals){
+    var i=idx(e);if(i>=99)return 'no';
+    var de=Math.max(r.cand[i].dist,1e-6),lo=RELAX?0.95:0.9,hi=RELAX?1.05:1.1,dr=1e9;
+    (rivals||[]).forEach(function(x){var k=idx(x);if(k<99&&r.cand[k].dist<dr)dr=r.cand[k].dist;});
+    if(dr<1e9){var ratio=dr/de;if(ratio<lo)return 'no';if(ratio<hi)return 'amb';}
+    return o.accepts(e)?'ok':'no';
+  };
   o.accepts=function(e){
     var i=idx(e);if(i>=99)return false;
     var ratio=RELAX?1.8:TH.accept,rank=RELAX?4:TH.rank,cap=TH.maxDist*(RELAX?1.5:1.2);
@@ -801,52 +1047,54 @@ function clusterize(objs){
 }
 function flat(cls){var r=[];cls.forEach(function(c){r=r.concat(c.objs);});return r;}
 
-function boardWrong(id,c,T,missing){
-  var m=M,d=c.read.top,kind=c.bad.kind,pt=(missing[0]||T[0]).el,PL=CATS[1];
-  switch(id){
-    case 'writeOnes':
-      if(kind==='multi') return {text:'答えの一の位には、1つの数字だけ書くよ。'+(m.pT>0?m.p+'の一の位を書こう。':''),point:pt,cat:PL};
-      if(kind==='place'){
-        if(d===m.pO) return {text:m.pO+'は 一の位に書こう。',point:pt,cat:PL};
-        if(m.pT>0&&d===m.pT) return {text:m.pT+'は、あとで 小さく上に書くよ。今は 一の位だよ。',point:pt,cat:PL};
-        return {text:'答えの一の位は、ここやで！',point:pt,cat:PL};
-      }
-      if(d===m.o+m.b||d===(m.o+m.b)%10) return {text:'たすのではなく、かけ算だよ。'+m.o+'×'+m.b+'を考えよう。',cat:CATS[0],add:true};
-      if(d===m.t*m.b||d===(m.t*m.b)%10) return {text:'今は一の位からだよ。'+m.o+'を見てみよう。',cat:CATS[0]};
-      if(m.pT>0&&d===m.pT) return {text:m.pT+'は十の位の数だよ。一の位には '+m.p+'の 一の位を書こう。',cat:CATS[0]};
-      if(d===m.o||d===m.b) return {text:'かける前の数ではなく、'+m.o+'×'+m.b+'の答えを 見てみよう。',cat:CATS[0]};
-      return {text:m.o+'×'+m.b+'を考えよう。'+m.b+'の段を思い出そう。',cat:CATS[0]};
-    case 'writeCarry':
-      if(kind==='multi') return {text:'繰り上がりは 1つの数字だよ。小さく上に書こう。',point:pt,cat:CATS[2]};
-      if(kind==='place'){
-        if(d===m.pT) return {text:'十の位の'+m.pT+'も、小さく上に書こう。',point:pt,cat:CATS[2]};
-        return {text:'繰り上がりは、ここやで！',point:pt,cat:CATS[2]};
-      }
-      if(d===m.pO) return {text:m.pO+'は もう 一の位に書いたよ。十の位の'+m.pT+'を、小さく上に書こう。',cat:CATS[2]};
-      return {text:m.p+'の 十の位の数を、小さく上に書こう。',cat:CATS[2]};
-    case 'writeTens':
-      if(kind==='multi') return {text:'ひとつの マスには 1つの数字を書くよ。',point:pt,cat:PL};
-      if(kind==='place'){
-        if(m.sT>0){
-          if(d===m.sT) return {text:m.sT+'は 左のマスに書こう。',point:pt,cat:PL};
-          if(d===m.sO) return {text:m.sO+'は 右のマスに書こう。',point:pt,cat:PL};
-        }else if(d===m.s) return {text:m.s+'は 十の位に書こう。',point:pt,cat:PL};
-        return {text:'答えの十の位は、ここやで！',point:pt,cat:PL};
-      }
-      if(m.pT>0&&d===m.q) return {text:'上の小さな'+m.pT+'を使おう。'+m.q+'と '+m.pT+'を合わせよう。',cat:CATS[4]};
-      if(d===m.t+m.b) return {text:'たすのではなく、かけ算だよ。'+m.t+'×'+m.b+'を考えよう。',cat:CATS[3],add:true};
-      if(d===m.pO||d===m.o*m.b) return {text:'今は十の位だよ。'+m.t+'を見てみよう。',cat:CATS[3]};
-      if(m.pT>0&&d===m.pT) return {text:'それは繰り上がりの数だよ。'+m.t+'×'+m.b+'と合わせた答えを書こう。',cat:CATS[4]};
-      if(d===m.t||d===m.b) return {text:'かける前の数ではなく、'+m.t+'×'+m.b+(m.pT>0?'と繰り上がりを合わせた':'の')+'答えを書こう。',cat:CATS[3]};
-      return {text:m.t+'×'+m.b+'を考えよう。'+(m.pT>0?'上の小さな'+m.pT+'も 使うよ。':''),cat:CATS[3]};
-  }
-  return {text:'もう一度 考えてみよう。',cat:PL};
+function rivalsFor(st,e){
+  var out=[];
+  function add(n){if(n<0)return;dset(n).forEach(function(d){if(d!==e&&out.indexOf(d)<0)out.push(d);});}
+  if(st.type==='mul'){add(st.A+st.B);add(st.base);if(st.cin>0)add(st.cin);add(st.A);add(st.B);}
+  else if(st.type==='carry'){add(st.v%10);add(st.A);add(st.B);add(st.cout+1);add(st.cout-1);}
+  else if(st.type==='add'){if(st.has0)add(st.x);if(st.has1)add(st.y);if(st.cin>0){add((st.x+st.y)%10);add(st.cin);}}
+  
+  return out;
 }
-
-function judgeBoard(id,objs){
-  var T=targets(id),cr=clusterize(objs),cl=cr.cl;
-  if(!cl.length) return {act:'none',dust:cr.dust};
-  if(cl.some(function(c){return !c.read;})) return {act:'unread',remove:flat(cl),dust:cr.dust};
+function tName(t){return PLACE[colOfKey(t.key)]||'ここ';}
+function boardWrong(st,c,T,missing){
+  var d=c.read.top,kind=c.bad.kind,pt=(missing[0]||T[0]).el;
+  if(kind==='multi') return {text:(T.length>1?'ひとつの マスには':'ここには')+' 1つの数字だけ書くよ。'+(st.type==='mul'&&!st.last&&st.v>=10?st.v+'の一の位を書こう。':''),point:pt};
+  if(kind==='place'){
+    var hit=null;T.forEach(function(t){if(t.val===d&&!hit)hit=t;});
+    if(hit) return {text:d+'は、'+(st.type==='carry'||st.type==='addcarry'?'小さく上に':tName(hit)+'に')+'書こう。',point:hit.el};
+    if(st.type==='mul'&&!st.last&&st.cout>0&&d===st.cout) return {text:d+'は、あとで 小さく上に書くよ。今は '+tName(T[0])+'だよ。',point:pt};
+    if(st.type==='carry') return {text:'繰り上がりは、ここやで！',point:pt};
+    return {text:(T.length>1?'答えは':'ここに書く')+'、ここやで！',point:pt};
+  }
+  // 数字そのものがちがう
+  switch(st.type){
+    case 'mul':{
+      var mc=PLACE[Math.min(st.i,2)]+'の掛け算';
+      if(d===st.A+st.B||d===(st.A+st.B)%10) return {text:'たすのではなく、かけ算だよ。'+st.A+'×'+st.B+'を考えよう。',add:true};
+      if(st.cin>0&&dset(st.base).indexOf(d)>=0) return {text:'上の小さな'+st.cin+'を使おう。'+st.base+'と '+st.cin+'を合わせよう。'};
+      if(M.n===2){
+        var other=M.B[1-st.r];
+        if(dset(st.A*other).indexOf(d)>=0) return {text:st.r===1?'今は かける数の十の位の'+M.B[1]+'だよ。':'今は かける数の一の位の'+M.B[0]+'だよ。'};
+      }
+      if(!st.last&&st.v>=10&&d===st.cout) return {text:d+'は 十の位の数だよ。'+PLACE[st.i+st.r]+'には '+st.v+'の 一の位を書こう。'};
+      if(d===st.A||d===st.B) return {text:'かける前の数ではなく、'+st.A+'×'+st.B+'の答えを 見てみよう。'};
+      return {text:st.A+'×'+st.B+'を考えよう。'+st.B+'の段を思い出そう。'};}
+    case 'carry':
+      if(d===st.v%10) return {text:d+'は もう 答えに書いたよ。十の位の'+st.cout+'を、小さく上に書こう。'};
+      return {text:st.v+'の 十の位の数を、小さく上に書こう。'};
+    case 'add':
+      if(st.cin>0&&d===(st.x+st.y)%10) return {text:'上の小さな'+st.cin+'（くり上がり）も たそう。'};
+      if(d===st.x||d===st.y) return {text:'たし算だよ。上と下の数を たそう。'};
+      return {text:(st.has0&&st.has1?st.x+'＋'+st.y+(st.cin>0?'＋'+st.cin:''):'この位の数')+'を たそう。'};
+    case 'addcarry': return {text:'くり上がりは 1だよ。となりの上に 小さく書こう。'};
+  }
+  return {text:'もう一度 考えてみよう。'};
+}
+function judgeBoard(st,objs){
+  var T=targets(st),cr=clusterize(objs),cl=cr.cl;
+  if(!cl.length)return {act:'none',dust:cr.dust};
+  if(cl.some(function(c){return !c.read;}))return {act:'unread',remove:flat(cl),dust:cr.dust};
   T.forEach(function(t){t.rect=relRect(t.el);});
   var byT={};
   cl.forEach(function(c){
@@ -858,146 +1106,145 @@ function judgeBoard(id,objs){
       }
     });
     c.tgt=best;
-    if(best){(byT[best.key]=byT[best.key]||[]).push(c);}
+    if(best)(byT[best.key]=byT[best.key]||[]).push(c);
   });
   cl.forEach(function(c){
     if(!c.tgt){if(!c.read.conf)c.unr=true;else c.bad={kind:'place'};return;}
     if(byT[c.tgt.key].length>1){c.bad={kind:'multi'};return;}
-    if(c.read.accepts(c.tgt.val)){c.good=true;return;}
-    if(!c.read.conf){c.unr=true;return;}
+    var s=c.read.judge(c.tgt.val,rivalsFor(st,c.tgt.val));
+    if(s==='ok'){c.good=true;return;}
+    if(s==='amb'||!c.read.conf){c.unr=true;return;}
     c.bad={kind:'digit'};
   });
+  function teachOf(list){return list.filter(function(c){return c.tgt;}).map(function(c){return {val:c.tgt.val,strokes:c.objs.map(toPx)};});}
   var unr=cl.filter(function(c){return c.unr;});
-  if(unr.length) return {act:'unread',remove:flat(unr),dust:cr.dust};
+  if(unr.length)return {act:'unread',remove:flat(unr),dust:cr.dust,teach:teachOf(unr)};
   var bads=cl.filter(function(c){return c.bad;}),goods=cl.filter(function(c){return c.good;}),cov={};
   goods.forEach(function(c){cov[c.tgt.key]=true;});
   var missing=T.filter(function(t){return !cov[t.key];});
   if(!bads.length){
-    if(!missing.length) return {act:'solve',dust:cr.dust};
+    if(!missing.length)return {act:'solve',dust:cr.dust};
     return {act:'partial',point:missing[0].el,dust:cr.dust,msg:'いいね！もうひとつ、ここやで！'};
   }
-  var w=boardWrong(id,bads[0],T,missing);
-  var r={act:'wrong',cat:w.cat||CAT_OF[id],detail:'「'+bads[0].read.top+'」と読んだ'+(w.add?'（たし算かも）':''),spec:w.text+(bads[0].bad.kind==='digit'?'（「'+bads[0].read.top+'」と読んだよ）':''),point:w.point,remove:flat(bads),dust:cr.dust};
-  if(!missing.length&&bads.every(function(c){return c.bad.kind==='place';})) r.act='solveNote';
+  var w=boardWrong(st,bads[0],T,missing),k0=bads[0].bad.kind;
+  var r={act:'wrong',teach:teachOf(bads.filter(function(c){return c.bad.kind==='digit';})),cat:catOf(st,k0),detail:'「'+bads[0].read.top+'」と読んだ'+(w.add?'（たし算かも）':''),
+    spec:w.text+(k0==='digit'?'（「'+bads[0].read.top+'」と読んだよ）':''),point:w.point,remove:flat(bads),dust:cr.dust};
+  if(!missing.length&&bads.every(function(c){return c.bad.kind==='place';}))r.act='solveNote';
   return r;
 }
 
-function okText(id){
-  var m=M;
-  switch(id){
-    case 'writeOnes': return m.pT>0?'そう！'+m.o+'×'+m.b+'＝'+m.p+'。一の位の'+m.pO+'を ここに書けたね！':'そう！'+m.o+'×'+m.b+'＝'+m.p+'。繰り上がりは ないよ！';
-    case 'writeCarry': return '繰り上がりも書けたね！';
-    case 'writeTens':
-      if(m.pT>0) return m.sT>0?'そう！'+m.q+'＋'+m.pT+'＝'+m.s+'。最後の位だから そのまま書けたね！':'そう！'+m.q+'に繰り上がりの'+m.pT+'を合わせて '+m.s+'だね！';
-      return 'そう！'+m.t+'×'+m.b+'＝'+m.s+'！';
-  }
-  return '';
+function showHint(st,spec){
+  var lv=S.lv[S.idx]||0,hs=hintsFor(st),parts=[];
+  if(spec)parts.push(spec);else if(lv===1)parts.push(hs.l1);
+  if(lv>=2)parts.push(hs.l2);
+  if(lv>=3){S.detail=true;parts.push('かいせつを 先生と いっしょに 見てみよう。');}
+  S.fb={kind:'hint',text:parts.join(' '),anchor:anchorKey()};
+  renderReact();renderDetail();
 }
-function solveStep(id,note){
-  clearTimeout(S.evalTimer);clearTimeout(S.waitTimer);clearHere();
-  var txt=okText(id)+(note?' '+note:'');
-  var T0=targets(id),key=T0.length?T0[T0.length-1].key:'ans-o';
-  S.idx++;
-  S.detail=false;
-  S.fb={kind:'ok',text:txt,anchor:key};
-  renderAll();
+function giveHint(){
+  var st=cur();if(!writing(st))return;
+  S.lv[S.idx]=Math.min(3,(S.lv[S.idx]||0)+1);
+  showHint(st,null);
 }
 function logMistake(cat,detail){
-  if(!cat) return;
+  if(!cat)return;
   stats[cat]=(stats[cat]||0)+1;S.mis++;
   mistakes.push({p:M.a+'×'+M.b,cat:cat,detail:detail});
 }
-function applyResult(id,res){
+function solveStep(note){
+  clearTimeout(S.evalTimer);clearTimeout(S.waitTimer);clearHere();
+  var st=cur(),T0=st.targets,key=T0.length?T0[T0.length-1].key:'pp-0-0';
+  S.idx++;S.detail=false;S.teach=null;
+  S.fb={kind:'ok',text:okText(st)+(note?' '+note:''),anchor:key};
+  renderAll();
+}
+function applyResult(st,res){
   silentRemove(res.dust);
+  var k=S.idx;
+  S.teach=(res.teach&&res.teach.length)?{step:k,items:res.teach}:null;
   switch(res.act){
-    case 'none': redrawInk();return;
-    case 'wait':
-      S.waitTimer=setTimeout(function(){evaluate(true);},2600);return;
+    case 'none':redrawInk();return;
     case 'unread':
-      S.unread[id]=(S.unread[id]||0)+1;stats.unread++;
+      S.unread[k]=(S.unread[k]||0)+1;stats.unread++;
       flashRemove(res.remove);
       S.fb={kind:'hint',text:UNREAD_MSG,anchor:anchorKey()};renderReact();return;
     case 'partial':
       S.fb={kind:'ok',text:res.msg,anchor:anchorKey()};renderReact();showHere(res.point,'ここやで！');return;
-    case 'place':
-      flashRemove(res.remove);
-      S.fb={kind:'hint',text:res.msg,anchor:anchorKey()};renderReact();showHere(res.point,'ここやで！');return;
     case 'wrong':
-      S.lv[id]=Math.min(3,(S.lv[id]||0)+1);
+      S.lv[k]=Math.min(3,(S.lv[k]||0)+1);
       logMistake(res.cat,res.detail);
       flashRemove(res.remove);
-      if(res.point) showHere(res.point,'ここやで！');
-      showHint(id,res.spec);
-      return;
-    case 'solve': solveStep(id,'');return;
-    case 'solveNote': logMistake(CAT_OF[id],'ちがう場所にも書いた');solveStep(id,'（'+res.spec+'）');return;
+      if(res.point)showHere(res.point,'ここやで！');
+      showHint(st,res.spec);return;
+    case 'solve':solveStep('');return;
+    case 'solveNote':logMistake('答えの数字の配置','ちがう場所にも書いた');solveStep('（'+res.spec+'）');return;
   }
 }
 function evaluate(force){
   clearTimeout(S.evalTimer);clearTimeout(S.waitTimer);
-  var id=cur();if(!WRITE[id])return;
-  var objs=S.ink.filter(function(s){return s.step===S.idx&&!s.bad;});
+  var st=cur();if(!writing(st))return;
+  var objs=S.ink.filter(function(s){return s.step===S.idx&&!s.bad&&!s.typed;});
   if(!objs.length)return;
   layoutMeasure();
-  RELAX=(S.unread[id]||0)>=2;
-  var res=judgeBoard(id,objs);
-  applyResult(id,res);
+  RELAX=(S.unread[S.idx]||0)>=2;
+  applyResult(st,judgeBoard(st,objs));
 }
 
 /* =========================================================
-   道具ボタン
+   ボタン類
    ========================================================= */
 function undo(){
   var i=S.ink.length-1;
   while(i>=0&&S.ink[i].bad)i--;
   if(i<0)return;
   var s=S.ink.splice(i,1)[0];
-  if(s.step<S.idx) S.idx=s.step;
-  S.fb=null;S.detail=false;
-  renderAll();
+  if(s.step<S.idx)S.idx=s.step;
+  S.fb=null;S.detail=false;renderAll();
 }
 function clearStep(){
   S.ink=S.ink.filter(function(s){return s.step!==S.idx;});
-  S.fb=null;
-  redrawInk();renderReact();
+  S.fb=null;redrawInk();renderReact();
 }
 var restartTimer=null;
 function restart(){
   var b=$('#bRestart');
   if(!restartTimer){
-    b.innerHTML='<span class="ic">❓</span>もういちど おすと はじめから';
-    restartTimer=setTimeout(function(){restartTimer=null;b.innerHTML='<span class="ic">🔄</span>はじめから';},3000);
+    b.innerHTML='<span class="ic">❓</span>ほんとに？';
+    restartTimer=setTimeout(function(){restartTimer=null;b.innerHTML='<span class="ic">🔄</span>はじめ<br>から';},3000);
     return;
   }
   clearTimeout(restartTimer);restartTimer=null;
-  b.innerHTML='<span class="ic">🔄</span>はじめから';
-  startProblem(S.pi);
+  b.innerHTML='<span class="ic">🔄</span>はじめ<br>から';
+  startProblem(M.a,M.b);
 }
+function newRandom(){var p=genProblem(cfg.type,cfg.cm);startProblem(p.a,p.b);}
 function teacherHTML(){
   var m=M,h='';
-  h+='<h2>かけ算の意味</h2><p>'+m.a+'×'+m.b+'は「'+m.a+'を'+m.b+'回たす」（'+rep(m.a,m.b)+'）ことでも表せます。ひっ算では、'+m.a+'を「'+m.t+'0と'+m.o+'」に分け、<b>一の位から</b>順に、それぞれに'+m.b+'をかけて、答えを合わせます。</p>';
+  h+='<h2>かけ算の意味</h2><p>'+m.a+'×'+m.b+'は「'+m.a+'を'+m.b+'回たす」ことでも表せます。ひっ算では、位ごとに分けて、<b>一の位から</b>順に かけて、答えを合わせます。</p>';
   h+='<h2>この問題の解き方（先生用）</h2><ol>';
-  h+='<li>一の位：'+m.o+'×'+m.b+'＝'+m.p+'</li>';
-  if(m.pT>0) h+='<li>'+m.p+'の一の位の'+m.pO+'を答えの一の位に、十の位の'+m.pT+'を十の位の上に小さく書く（繰り上がり）</li>';
-  else h+='<li>'+m.p+'を答えの一の位に書く（繰り上がりなし）</li>';
-  h+='<li>十の位：'+m.t+'×'+m.b+'＝'+m.q+'</li>';
-  h+='<li>'+(m.pT>0?'繰り上がりの'+m.pT+'を合わせる：'+m.q+'＋'+m.pT+'＝'+m.s:'そのまま'+m.s)+'を答えの十の位に書く'+(m.sT>0?'（最後の位なので'+m.s+'をそのまま左に書く）':'')+'</li>';
+  m.steps.forEach(function(s){
+    if(s.type==='mul')h+='<li>'+(m.n===2?'かける数の'+PLACE[s.r]+'の'+s.B+'：':'')+PLACE[s.i]+'：'+s.A+'×'+s.B+(s.cin>0?'＋繰り上がり'+s.cin:'')+'＝'+s.v+(s.last?'':(s.v>=10?' → '+(s.v%10)+'を書く':' → '+s.v+'を書く'))+(s.r===1&&s.i===0?'（ひとつ左のマスから）':'')+'</li>';
+    else if(s.type==='carry')h+='<li>繰り上がり '+s.cout+' を 上に小さく書く</li>';
+    else if(s.type==='add')h+='<li>たし算（'+PLACE[s.c]+'）：'+(s.has0?s.x:'')+(s.has0&&s.has1?'＋':'')+(s.has1?s.y:'')+(s.cin>0?'＋'+s.cin:'')+'＝'+s.v+'</li>';
+    else if(s.type==='addcarry')h+='<li>たし算の繰り上がり '+s.cout+' を 上に小さく書く</li>';
+  });
   h+='<li>答え：'+m.ans+'</li></ol>';
-  h+='<h2>手書き数字の読み取りについて</h2><p>書いた線をこの端末の中だけで読み取っています（点の並びを、0〜9の見本と比べる方法。外部サービスは使いません）。書いた場所が、マス目のどこにあたるかも見ています。確かでないときは、まちがいと決めつけず「うまく読めなかったよ」と案内し、書き直してもらいます。同じ場所で2回続けて読めないと、読み取りをさらに甘くして、「先生が OK にする」ボタンも出します。</p>';
+  h+='<h2>問題を自分で決める</h2><p>かけられる数（10〜999）×かける数（2〜99・0を含まない）<br><input id="cA" type="number" inputmode="numeric" min="10" max="999" style="width:6rem;font-size:1.2rem"> × <input id="cB" type="number" inputmode="numeric" min="2" max="99" style="width:5rem;font-size:1.2rem"> <button class="btn small" data-act="custom">この問題にする</button> <span id="cMsg" style="color:#B45309"></span></p>';
+  h+='<h2>手書き数字の読み取りについて</h2><p>書いた線をこの端末の中だけで読み取っています（点の並びを、0〜9の見本と比べる方法。外部サービスは使いません）。書いた場所がマス目のどこにあたるかも見ています。確かでないときは、まちがいと決めつけず「うまく読めなかったよ」と案内します。同じ場所で2回続けて読めないと、読み取りをさらに甘くして、「先生が OK にする」ボタンも出します。</p>';
+  h+='<h2>おぼえさせた字</h2><p>「先生が OK にする」を押すと、そのときの字を おぼえて、つぎから読みやすくなります（この端末の中だけに保存）。いま <b>'+HW.sampleCount()+'</b> こ。 <button class="btn small" data-act="forget">ぜんぶ わすれさせる</button></p>';
   h+='<h2>つまずきメモ（この画面を開いている間だけ）</h2><div class="cats">';
-  CATS.forEach(function(c){h+='<span class="cat'+(stats[c]>0?' has':'')+'">'+c+(stats[c]>0?' ×'+stats[c]:'')+'</span>';});
+  Object.keys(stats).forEach(function(c){if(c==='unread')return;h+='<span class="cat'+(stats[c]>0?' has':'')+'">'+c+(stats[c]>0?' ×'+stats[c]:'')+'</span>';});
   h+='<span class="cat'+(stats.unread>0?' has':'')+'">読めなかった'+(stats.unread>0?' ×'+stats.unread:'')+'</span></div><ul class="mlog">';
   var last=mistakes.slice(-6).reverse();
   last.forEach(function(x){h+='<li>'+x.p+'：'+x.cat+'（'+x.detail+'）</li>';});
-  if(!last.length) h+='<li>まだ まちがいは ありません。</li>';
+  if(!last.length)h+='<li>まだ まちがいは ありません。</li>';
   h+='</ul><p class="privacy">名前などは保存しません。記録は画面を閉じると消えます。</p>';
   h+='<p><button class="btn" data-act="closeDrawer">とじる</button></p>';
   return h;
 }
-function startProblem(pi){
-  var pr=problems[pi];
-  M=makeModel(pr.a,pr.b);
-  S={pi:pi,idx:0,ink:[],fb:null,lv:{},wrong:{},unread:{},tool:'pen',mis:0,detail:false,evalTimer:null,waitTimer:null};
+function startProblem(a,b){
+  M=makeModel(a,b);
+  S={idx:0,ink:[],fb:null,lv:{},unread:{},tool:'pen',mis:0,detail:false,evalTimer:null,waitTimer:null};
   renderAll();
 }
 
@@ -1006,26 +1253,46 @@ function startProblem(pi){
    ========================================================= */
 document.addEventListener('click',function(e){
   var t=e.target.closest?e.target.closest('[data-act]'):null;
-  if(!t){
-    if(e.target===$('#drawer')) $('#drawer').hidden=true;
-    return;
-  }
+  if(!t){if(e.target===$('#drawer')){$('#drawer').hidden=true;drawerMode='';}return;}
   var act=t.getAttribute('data-act');
   if(act==='pen'){S.tool='pen';renderTools();}
   else if(act==='eraser'){S.tool='erase';renderTools();}
-  else if(act==='hint') giveHint();
-  else if(act==='undo') undo();
-  else if(act==='clearStep') clearStep();
-  else if(act==='restart') restart();
-  else if(act==='nextProblem') startProblem((S.pi+1)%problems.length);
-  else if(act==='teacherOk') solveStep(cur(),'（先生が OK にしました）');
+  else if(act==='hint')giveHint();
+  else if(act==='pad'){padOn=!padOn;renderPad();}
+  else if(act==='num')pressNum(parseInt(t.getAttribute('data-d'),10));
+  else if(act==='numdel')numDel();
+  else if(act==='numclear')numClear();
+  else if(act==='undo')undo();
+  else if(act==='clearStep')clearStep();
+  else if(act==='restart')restart();
+  else if(act==='gen'){cfg.type=t.getAttribute('data-t');newRandom();}
+  else if(act==='cm'){cfg.cm=t.getAttribute('data-v');renderPick();}
+  else if(act==='nextProblem')newRandom();
+  else if(act==='teacherOk'){
+    var note='（先生が OK にしました）';
+    if(S.teach&&S.teach.step===S.idx){
+      S.teach.items.forEach(function(it){HW.addSample(it.val,it.strokes);});
+      saveSamples();note='（先生が OK にしました。この字を おぼえたよ）';
+    }
+    solveStep(note);
+  }
+  else if(act==='forget'){HW.clearSamples();saveSamples();$('#sheet').innerHTML=teacherHTML();}
   else if(act==='closeDetail'){S.detail=false;renderDetail();}
   else if(act==='drawer'){$('#sheet').innerHTML=teacherHTML();$('#drawer').hidden=false;drawerMode='teacher';}
   else if(act==='closeDrawer'){$('#drawer').hidden=true;drawerMode='';}
+  else if(act==='custom'){
+    var a=parseInt($('#cA').value,10),b=parseInt($('#cB').value,10),msg=$('#cMsg');
+    if(!(a>=10&&a<=999)||!(b>=2&&b<=99)||String(b).indexOf('0')>=0){msg.textContent='数を 見なおしてね（かける数に0は つかえません）';return;}
+    cfg.type=(String(a).length===2?'2':'3')+'x'+String(b).length;
+    $('#drawer').hidden=true;drawerMode='';startProblem(a,b);
+  }
   else if(act==='big'){document.documentElement.classList.toggle('big');renderAll();}
 });
-document.addEventListener('change',function(e){
-  if(e.target&&e.target.id==='probSel') startProblem(parseInt(e.target.value,10));
+document.addEventListener('keydown',function(e){
+  if(!padOn||!S||!writing(cur()))return;
+  if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'))return;
+  if(/^[0-9]$/.test(e.key)){pressNum(parseInt(e.key,10));e.preventDefault();}
+  else if(e.key==='Backspace'){numDel();e.preventDefault();}
 });
 ['gesturestart','gesturechange','gestureend'].forEach(function(ev){
   document.addEventListener(ev,function(e){e.preventDefault();});
@@ -1034,23 +1301,9 @@ var rzTimer=null;
 window.addEventListener('resize',function(){clearTimeout(rzTimer);rzTimer=setTimeout(function(){if(S)renderAll();},150);});
 
 /* =========================================================
-   起動
+   起動：ランダムな 2けた×1けた から
    ========================================================= */
-startProblem(0);
-if(window.google&&google.script&&google.script.run){
-  google.script.run
-    .withSuccessHandler(function(list){
-      if(!Array.isArray(list))return;
-      var ok=list.filter(validProblem);
-      if(!ok.length)return;
-      var a=M.a,b=M.b,k=-1;
-      problems=ok;
-      problems.forEach(function(p,i){if(p.a===a&&p.b===b&&k<0)k=i;});
-      if(k<0) startProblem(0); else {S.pi=k;renderChips();}
-    })
-    .withFailureHandler(function(){})
-    .getProblems();
-}
+newRandom();
 })();
 </script>
 </body>
