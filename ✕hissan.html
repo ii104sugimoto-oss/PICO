@@ -176,6 +176,17 @@ select#probSel{font-size:1.2rem;font-weight:700;padding:.3rem .6rem;border:3px s
 .nbtn:active{transform:translateY(.12rem);box-shadow:0 .03rem 0 var(--ink)}
 .nbtn.del{font-size:.85rem;background:#F1F4F8}
 #teacherOkBtn small{display:block;font-size:.75rem;font-weight:400;opacity:.9}
+#marks{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:4}
+.hmark{position:absolute;display:flex;flex-direction:column;align-items:center;animation:hpop .45s cubic-bezier(.2,1.4,.4,1)}
+.hmark>svg,.hmark .hbox svg{width:100%;height:100%;overflow:visible;transform:rotate(-8deg);display:block}
+.hmark .hbox{width:100%}
+.hmark.tmp{animation:hpop .45s cubic-bezier(.2,1.4,.4,1),hfade .5s ease 1.5s forwards}
+.hana circle,.hana path{fill:none;stroke:#E5383B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.hana .pet circle{fill:rgba(255,205,210,.38);stroke-dasharray:100;stroke-dashoffset:100;animation:draw .55s ease-out forwards}
+.hana .spi{stroke-width:3.6;stroke-dasharray:100;stroke-dashoffset:100;animation:draw .8s ease-out .45s forwards}
+.hlabel{margin-top:.15rem;font-size:1.15rem;font-weight:700;color:#E5383B;text-shadow:0 0 .3rem #fff,0 0 .3rem #fff}
+@keyframes hpop{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes hfade{to{opacity:0}}
 .kbin{position:absolute;opacity:0;width:1px;height:1px;left:0;top:0}
 .nbtn.kb{width:100%;margin-top:.35rem;font-size:.95rem;min-height:2.6rem}
 .ver{font-size:.7rem;color:var(--ink-soft);text-align:right;margin-top:.2rem}
@@ -186,7 +197,7 @@ select#probSel{font-size:1.2rem;font-weight:700;padding:.3rem .6rem;border:3px s
 .calcv{display:block;width:100%;aspect-ratio:1;border:3px solid var(--ink);border-radius:.7rem;background:#fff;touch-action:none;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:1.2rem 1.2rem}
 .calbt{display:flex;gap:.3rem;margin-top:.3rem}
 .calbt .btn.small{margin-top:0;flex:1;padding:.3rem .2rem}
-.praise{font-size:1.15rem;font-weight:400;margin:.3rem 0 .5rem}
+.praise{font-size:1rem;font-weight:400;margin:.3rem 0 .5rem}
 
 /* ここやで */
 .here{position:fixed;z-index:60;pointer-events:none;display:flex;flex-direction:column;align-items:center;animation:hop .7s ease-in-out infinite}
@@ -208,7 +219,7 @@ select#probSel{font-size:1.2rem;font-weight:700;padding:.3rem .6rem;border:3px s
 .cat.has{background:var(--hint-bg);color:var(--hint)}
 .mlog{font-size:.95rem;color:var(--ink-soft)}
 .privacy{font-size:.85rem;color:var(--ink-soft)}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.circ ellipse,.hana circle,.hana path{stroke-dashoffset:0!important}}
 </style>
 </head>
 <body>
@@ -228,6 +239,7 @@ select#probSel{font-size:1.2rem;font-weight:700;padding:.3rem .6rem;border:3px s
       </div>
       <div id="board"></div>
       <div class="bcol" id="bcol"></div>
+      <div id="marks"></div>
       <div id="bubbles" aria-live="polite"></div>
       <canvas id="ink"></canvas>
     </div>
@@ -497,7 +509,7 @@ var HW = (function(){
 var TYPES={'2x1':[2,1],'3x1':[3,1],'2x2':[2,2],'3x2':[3,2]};
 var TYPE_NAMES={'2x1':'2けた<br>×1けた','3x1':'3けた<br>×1けた','2x2':'2けた<br>×2けた','3x2':'3けた<br>×2けた'};
 var CM_NAMES={any:'どちらも',yes:'あり',no:'なし'};
-var VERSION='版 13';
+var VERSION='版 14';
 var cfg={type:'2x1',cm:'any',cp:'sheet'};
 try{var sc=window.localStorage&&localStorage.getItem('hissan_cfg_v1');if(sc){var o=JSON.parse(sc);if(o.cp==='ans'||o.cp==='top'||o.cp==='sheet')cfg.cp=o.cp;if(o.cm==='any'||o.cm==='yes'||o.cm==='no')cfg.cm=o.cm;}}catch(e){}
 function saveCfg(){try{localStorage.setItem('hissan_cfg_v1',JSON.stringify(cfg));}catch(e){}}
@@ -952,7 +964,7 @@ function fitCell(){
   document.documentElement.style.setProperty('--cellw',wide+'px');
 }
 function renderAll(){
-  clearHere();
+  clearHere();clearMarks();
   renderPick();
   $('#board').innerHTML=boardHTML();
   fitCell();
@@ -961,6 +973,7 @@ function renderAll(){
   layoutInk();
   renderReact();
   if(window.requestAnimationFrame)requestAnimationFrame(function(){layoutInk();renderBubbles();});
+  if(cur().type==='done'&&S.finalShown){showFinalHana();}
 }
 
 /* =========================================================
@@ -1250,12 +1263,60 @@ function logMistake(cat,detail){
   stats[cat]=(stats[cat]||0)+1;S.mis++;
   mistakes.push({p:M.a+'×'+M.b,cat:cat,detail:detail});
 }
+/* ---- はなまる ---- */
+var HANA='';
+(function(){
+  var pet='',k,sp='M50 50';
+  for(k=0;k<8;k++){
+    var a=k*Math.PI/4,cx=50+29*Math.cos(a),cy=50+29*Math.sin(a);
+    pet+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="15" pathLength="100" style="animation-delay:'+(k*0.05).toFixed(2)+'s"/>';
+  }
+  for(k=0;k<=70;k++){
+    var t=k/70,ang=t*Math.PI*4.2-Math.PI/2,r=3+t*25;
+    sp+=(k===0?'M':'L')+(50+r*Math.cos(ang)).toFixed(1)+' '+(50+r*Math.sin(ang)).toFixed(1)+' ';
+  }
+  HANA='<svg class="hana" viewBox="0 0 100 100" aria-hidden="true"><g class="pet">'+pet+'</g><path class="spi" pathLength="100" d="'+sp.replace(/^M50 50M/,'M')+'"/></svg>';
+})();
+function clearMarks(){var m=$('#marks');if(m)m.innerHTML='';}
+function unionRect(keys){
+  var x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,ok=false;
+  keys.forEach(function(k){
+    var el=slotByKey(k);if(!el)return;
+    var r=relRect(el);ok=true;
+    x0=Math.min(x0,r.x);y0=Math.min(y0,r.y);x1=Math.max(x1,r.x+r.w);y1=Math.max(y1,r.y+r.h);
+  });
+  return ok?{x:x0,y:y0,w:x1-x0,h:y1-y0}:null;
+}
+function showHana(keys){
+  var u=unionRect(keys);if(!u)return;
+  var size=Math.max(46,Math.min(Math.max(u.w,u.h)*1.3,cellPx*1.5));
+  var el=document.createElement('div');
+  el.className='hmark tmp';
+  el.style.cssText='left:'+(u.x+u.w/2-size/2)+'px;top:'+(u.y+u.h/2-size/2)+'px;width:'+size+'px;height:'+size+'px';
+  el.innerHTML=HANA;
+  $('#marks').appendChild(el);
+  setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},2100);
+}
+function showFinalHana(){
+  S.finalShown=true;
+  var keys=[],c;
+  for(c=0;c<M.cols;c++)keys.push((M.n===1?'pp-0-':'sm-')+c);
+  var u=unionRect(keys);if(!u)return;
+  var bc=relRect($('#bcol')),size=Math.max(110,Math.min(bc.w,cellPx*2.4,230));
+  var el=document.createElement('div');
+  el.className='hmark big';
+  el.style.cssText='left:'+(bc.x+(bc.w-size)/2)+'px;top:'+Math.max(6,Math.min(cardH-size-40,u.y-size-18))+'px;width:'+size+'px';
+  el.innerHTML='<div class="hbox" style="height:'+size+'px">'+HANA+'</div><div class="hlabel">よくできました！</div>';
+  $('#marks').appendChild(el);
+}
 function solveStep(note){
   clearTimeout(S.evalTimer);clearTimeout(S.waitTimer);clearHere();
-  var st=cur(),T0=st.targets,key=T0.length?T0[T0.length-1].key:'pp-0-0';
+  var st=cur(),T0=st.targets,key=T0.length?T0[T0.length-1].key:'pp-0-0',keys=T0.map(function(t){return t.key;});
   S.idx++;S.detail=false;S.teach=null;
   S.fb={kind:'ok',text:okText(st)+(note?' '+note:''),anchor:key};
   renderAll();
+  if(cur().type==='done'){showFinalHana();}else{showHana(keys);}
+  if(window.requestAnimationFrame)requestAnimationFrame(function(){if(cur().type==='done'){clearMarks();showFinalHana();}});
 }
 function applyResult(st,res){
   silentRemove(res.dust);
