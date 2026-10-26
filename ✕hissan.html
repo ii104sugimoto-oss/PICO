@@ -2,1309 +2,529 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<base target="_top">
-<title>ひっ算</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>みずのかさをはかろう！(dL)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-:root{
-  --page:#E8F2EE; --paper:#FBFDFC; --grid:#CFE5DF; --grid2:#9DBFB6;
-  --ink:#22304A; --ink-soft:#5F6F88; --pencil:#2A2F45;
-  --ones:#2468E0; --ones-bg:#DCE8FF;
-  --tens:#E8821A; --tens-bg:#FFE9CF;
-  --huns:#1F9D5A; --huns-bg:#D6F2E3;
-  --carry:#D6336C; --carry-bg:#FFE0EC;
-  --ok:#1F8A52; --ok-bg:#DDF5E8; --hint:#9A4A00; --hint-bg:#FFF1CC;
-  --mark:#FFE680;
-  --thou:#8A5CF6; --thou-bg:#E9E0FF; --cyb:#7C3AED;
-  --cell:clamp(5rem,min(20vh,calc((75vw - 16rem)/3.6)),11rem);
-  --bw:12.5rem;
-  --sign:calc(var(--cell)*.55);
-  --font:"UD Digi Kyokasho N-R","UD デジタル 教科書体 N-R","BIZ UDPGothic","Hiragino Maru Gothic ProN","Yu Gothic UI","Meiryo",system-ui,sans-serif;
-}
-@media (orientation:portrait){:root{--cell:clamp(5rem,min(14vh,calc((100vw - 18rem)/3.6)),11rem)}}
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-html{font-size:16px;-webkit-text-size-adjust:100%}
-html.big{font-size:19px}
-body{
-  margin:0;background:var(--page);color:var(--ink);font-family:var(--font);line-height:1.5;
-  overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
-  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
-}
-button,select{font-family:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
-button:focus-visible{outline:4px solid var(--ones);outline-offset:2px}
-
-/* ---------- 全体レイアウト（10.1〜10.5インチ・横向きを基本に、縦向きにも対応） ---------- */
-.app{
-  height:100vh;height:100dvh;padding:.5rem;display:grid;gap:.5rem;
-  grid-template-columns:minmax(0,1fr) clamp(13rem,18vw,17rem);
-  grid-template-rows:minmax(0,1fr);
-  grid-template-areas:"paper guide";
-}
-@media (orientation:portrait){
-  .app{
-    grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;
-    grid-template-areas:"paper" "guide";
+  :root{
+    --brown: #8B5E34;
+    --brown-dark: #6B4423;
+    --ink: #4A3B2A;
+    --sky-top: #E3F6FF;
+    --sky-bottom: #FFF6E2;
+    --water-light: #82E0FF;
+    --water-dark: #1E9BE0;
+    --card: #FFFFFF;
   }
-}
-.a-paper{grid-area:paper;min-height:0}.a-guide{grid-area:guide;min-height:0}
-.head-tools{display:flex;flex-wrap:wrap;gap:.3rem;align-items:center}
-.chip{border:2.5px solid var(--ink);background:#fff;border-radius:999px;padding:.15rem .6rem;font-size:.95rem;font-weight:700;min-height:2.3rem}
-.chip[aria-pressed="true"]{background:var(--ink);color:#fff}
-.chip.tool{border-color:var(--ink-soft);color:var(--ink-soft);font-size:.9rem}
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{
+    margin:0; padding:0; height:100%;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
+    color: var(--ink);
+    overflow-x:hidden;
+    overflow-y:auto;
+  }
+  .stage{
+    max-width: 820px;
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 1.2vh 14px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+  .title{
+    font-size: clamp(16px, 3vh, 26px);
+    font-weight:800;
+    color: var(--brown-dark);
+    text-align:center;
+    margin: 0 0 1px;
+    text-shadow: 2px 2px 0 #fff, 0 3px 6px rgba(139,94,52,0.15);
+  }
+  .subtitle{
+    font-size: clamp(11px, 1.7vh, 15px);
+    font-weight:700;
+    color:#6B7C93;
+    margin-bottom: 1vh;
+    text-align:center;
+  }
 
-/* ---------- 筆算用紙（方眼ノート） ---------- */
-.card{
-  position:relative;height:100%;
-  background-color:var(--paper);
-  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-  background-size:1.6rem 1.6rem;
-  border:3px solid var(--ink);border-radius:1.2rem;padding:.4rem .5rem;
-  display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:.6rem;
-}
-.bcol{flex:1 1 auto;min-width:9rem;align-self:stretch}
-.dock{position:relative;z-index:6;flex:none;display:flex;flex-direction:column;gap:.35rem;align-self:center}
-.dbtn{width:4.4rem;min-height:3.6rem;border-radius:.9rem;background:#fff;border:3px solid var(--ink);box-shadow:0 .18rem 0 var(--ink);font-size:.72rem;font-weight:700;line-height:1.15;padding:.15rem}
-.dbtn .ic{display:block;font-size:1.4rem;line-height:1.2}
-.dbtn:active{transform:translateY(.15rem);box-shadow:0 .03rem 0 var(--ink)}
-.dbtn[aria-pressed="true"]{background:var(--ink);color:#fff}
-#bubbles{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:4}
-#ink{position:absolute;left:0;top:0;width:100%;height:100%;z-index:5;touch-action:none;border-radius:1.1rem;cursor:crosshair}
-#ink.off{pointer-events:none}
-.board{display:grid;justify-content:center;column-gap:.3rem;
-  grid-template-rows:auto calc(var(--cell)*.95) var(--cell) var(--cell) .55rem calc(var(--cell)*1.2)}
-.cell{position:relative;display:flex;align-items:center;justify-content:center;
-  font-size:calc(var(--cell)*.74);font-weight:700;line-height:1;border-radius:.8rem;
-  transition:background .25s,opacity .25s,box-shadow .25s}
-.p-o{color:var(--ones)}.p-t{color:var(--tens)}.p-h{color:var(--huns)}.p-k{color:var(--thou)}
-.sign,.mult{color:var(--ink)}
-.sign{font-size:calc(var(--cell)*.6)}
-.rule{align-self:center;height:.38rem;background:var(--ink);border-radius:.2rem}
-.dim{opacity:.3}
-.circ{position:absolute;left:-.45rem;top:-.45rem;width:calc(100% + .9rem);height:calc(100% + .9rem);overflow:visible;pointer-events:none;transform:rotate(-5deg)}
-.circ ellipse{fill:none;stroke-width:5;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;animation:draw .9s ease-out .1s forwards}
-.circ.c-on ellipse{stroke:var(--ones)}.circ.c-tn ellipse{stroke:var(--tens)}.circ.c-hn ellipse{stroke:var(--huns)}.circ.c-kn ellipse{stroke:var(--thou)}.circ.c-cy ellipse{stroke:var(--carry)}
-@keyframes draw{to{stroke-dashoffset:0}}
-.bub2{position:absolute;background:#fff;border:3px solid var(--ones);border-radius:1rem;padding:.35rem .55rem;font-size:1.05rem;font-weight:700;line-height:1.4;box-shadow:0 .2rem .5rem rgba(0,0,0,.12)}
-.bub2 small{display:block;font-size:.8rem;font-weight:400;color:var(--ink-soft);margin-top:.2rem}
-.bub2::before{content:"";position:absolute;left:-.95rem;top:calc(var(--ty,1.5rem) - .6rem);border:.6rem solid transparent;border-right:.8rem solid var(--ones);border-left:0}
-.bub2::after{content:"";position:absolute;left:-.62rem;top:calc(var(--ty,1.5rem) - .5rem);border:.5rem solid transparent;border-right:.65rem solid #fff;border-left:0}
-.bub2.ok{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
-.bub2.ok::before{border-right-color:var(--ok)}.bub2.ok::after{border-right-color:var(--ok-bg)}
-.bub2.hint{border-color:#E0A33A;background:var(--hint-bg);color:var(--hint);animation:shake .4s}
-.bub2.hint::before{border-right-color:#E0A33A}.bub2.hint::after{border-right-color:var(--hint-bg)}
-.bub2.say{color:var(--ink)}
-.hdr{font-size:.8rem;font-weight:700;border-radius:.7rem;padding:.15rem .1rem;margin-bottom:.3rem;white-space:nowrap;position:relative;opacity:.5}
-.hdr.p-o{background:var(--ones-bg)}.hdr.p-t{background:var(--tens-bg)}.hdr.p-h{background:var(--huns-bg)}.hdr.p-k{background:var(--thou-bg)}
-.hdr.on{opacity:1;color:#fff}.hdr.on.p-o{background:var(--ones)}.hdr.on.p-t{background:var(--tens)}.hdr.on.p-h{background:var(--huns)}.hdr.on.p-k{background:var(--thou)}
-.hdr .arr{position:absolute;right:-.7rem;top:50%;transform:translateY(-50%);font-size:1rem;color:var(--ink-soft);opacity:.45}
-.hdr.on .arr{color:var(--tens);opacity:1}
+  .lab{
+    background: var(--card);
+    border-radius: 26px;
+    padding: 1.4vh clamp(12px,3vw,28px) 1.6vh;
+    box-shadow: 0 8px 0 #DCE9F2, 0 12px 22px rgba(90,120,150,0.18);
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    position:relative;
+  }
 
-/* 書く場所（マス目） */
-.slot{border:.25rem dashed var(--grid2);background:rgba(255,255,255,.55)}
-.slot .ghost{display:none;font-size:calc(var(--cell)*.22);font-weight:700;opacity:.7;position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;line-height:1.2}
-.slot.target .ghost{display:block}
-.slot.target{animation:blink 1.4s ease-in-out infinite;background:rgba(255,255,255,.9)}
-.slot.target.p-o{border-color:var(--ones);color:var(--ones)}
-.slot.target.p-t{border-color:var(--tens);color:var(--tens)}
-.slot.target.p-h{border-color:var(--huns);color:var(--huns)}
-.slot.target.p-k{border-color:var(--thou);color:var(--thou)}
-.slot.carry-slot{border-color:#E6B5C9;border-radius:.6rem}
-.slot.carry-slot.target{border-color:var(--carry);color:var(--carry);background:var(--carry-bg)}
-.slot.carry-slot .ghost{font-size:calc(var(--cell)*.16)}
-.slot.carry-slot.cyr1{border-color:#C9B5F0}
-.slot.carry-slot.cyr1.target{border-color:var(--cyb);color:var(--cyb);background:#EFE8FF}
-.slot.carry-slot{border-width:.18rem}
-.slot.touching{box-shadow:0 0 0 .25rem #7BD39F;background:var(--ok-bg)}
-.slot.used .tick{position:absolute;right:.1rem;top:-.1rem;font-size:calc(var(--cell)*.2);color:var(--ok);background:#fff;border-radius:.4rem;padding:0 .2rem}
-.final{animation:glow 1.6s ease-in-out infinite alternate}
-@keyframes blink{50%{box-shadow:0 0 0 .3rem rgba(255,230,128,.9)}}
-@keyframes glow{to{box-shadow:0 0 0 .25rem #FFD54A;background:#FFF6CC}}
+  .containers-row{
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    gap: clamp(10px, 4vw, 32px);
+    width:100%;
+    flex-wrap: wrap;
+    position:relative;
+  }
 
-.c-o{color:var(--ones);font-weight:700}.c-t{color:var(--tens);font-weight:700}.c-h{color:var(--huns);font-weight:700}.c-c{color:var(--carry);font-weight:700}
+  .cup-block{ display:flex; flex-direction:column; align-items:center; }
+  .cup-caption{
+    margin-top:4px;
+    font-weight:700;
+    font-size: clamp(10px,1.4vh,13px);
+    color: var(--brown-dark);
+    background:#FFF3D6;
+    padding:2px 10px;
+    border-radius:999px;
+    border:2px solid #FFD98E;
+    white-space:nowrap;
+  }
 
-/* ---------- 右側：今やること・反応・道具 ---------- */
-.a-guide{display:flex;flex-direction:column;gap:.5rem;overflow:auto;-webkit-overflow-scrolling:touch}
-.panel{background:#fff;border:3px solid var(--ink);border-radius:1.2rem;padding:.7rem .9rem}
-.now .dots{display:flex;gap:.35rem;margin-bottom:.35rem}
-.now .dot{width:.85rem;height:.85rem;border-radius:50%;border:2.5px solid var(--ink-soft);background:#fff}
-.now .dot.done{background:var(--ok);border-color:var(--ok)}
-.now .dot.cur{background:var(--mark);border-color:var(--ink);transform:scale(1.25)}
-.now-main{display:flex;align-items:center;gap:.5rem;font-size:1.3rem;word-break:auto-phrase;line-break:strict;font-weight:700;line-height:1.25}
-.now-main .num{flex:none;font-size:2.4rem;color:var(--ink)}
-.now-say{font-size:1.3rem;font-weight:700;margin:.25rem 0 0}
-.now-sub{font-size:1.05rem;color:var(--ink-soft);margin:.1rem 0 0}
-.react{min-height:4.6rem;display:flex;flex-direction:column;justify-content:center;gap:.4rem;font-size:1.2rem;font-weight:700}
-.react.ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
-.react.hint{background:var(--hint-bg);border-color:#E0A33A;color:var(--hint);animation:shake .4s}
-.react.idle{color:var(--ink-soft);font-weight:400}
-@keyframes shake{20%{transform:translateX(-.4rem)}50%{transform:translateX(.4rem)}80%{transform:translateX(-.2rem)}}
-.detail{font-size:1.05rem;border-color:var(--ones);background:#F4F8FF;max-height:14rem;overflow:auto}
-.detail h3{margin:0 0 .3rem;font-size:1.1rem;color:var(--ones)}
-.detail p{margin:.25rem 0}
-.tools{display:grid;grid-template-columns:repeat(2,1fr);gap:.45rem}
-select#probSel{font-size:1.2rem;font-weight:700;padding:.3rem .6rem;border:3px solid var(--ink);border-radius:.9rem;background:#fff;min-height:2.6rem}
-.tools+.btn,.btn.block{display:block;width:100%}
-@media (orientation:portrait){.tools{grid-template-columns:repeat(6,1fr)}.tbtn{font-size:.8rem}.tbtn .ic{font-size:1.2rem}}
-.tbtn{font-size:1rem;font-weight:700;min-height:3.6rem;border-radius:1rem;background:#fff;border:3px solid var(--ink);box-shadow:0 .22rem 0 var(--ink);padding:.2rem .3rem;line-height:1.2}
-.tbtn:active{transform:translateY(.18rem);box-shadow:0 .04rem 0 var(--ink)}
-.tbtn[aria-pressed="true"]{background:var(--ink);color:#fff}
-.tbtn .ic{display:block;font-size:1.4rem}
-.btn{font-size:1.2rem;font-weight:700;padding:.6rem 1rem;border-radius:1rem;background:var(--ones);color:#fff;border:3px solid var(--ink);box-shadow:0 .22rem 0 var(--ink)}
-.btn.small{font-size:.95rem;padding:.35rem .8rem;background:#fff;color:var(--ink);align-self:flex-start}
-.pick{padding:.5rem .6rem}
-.pick-t{font-size:.8rem;font-weight:700;color:var(--ink-soft);margin:.1rem 0 .25rem}
-.pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;margin-bottom:.4rem}
-.pick-cm{display:flex;gap:.3rem;margin-bottom:.4rem}
-.pick-row{display:flex;flex-wrap:wrap;gap:.3rem}
-.pbtn{font-size:.95rem;font-weight:700;border:3px solid var(--ink);background:#fff;border-radius:.8rem;padding:.4rem .2rem;min-height:2.8rem;line-height:1.2}
-.pbtn.sm{flex:1;font-size:.85rem;min-height:2.3rem}
-.pbtn[aria-pressed="true"]{background:var(--ink);color:#fff}
-.padp{padding:.5rem .6rem}
-.padg{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem}
-.nbtn{font-size:1.7rem;font-weight:700;min-height:3rem;border-radius:.8rem;background:#fff;border:3px solid var(--ink);box-shadow:0 .15rem 0 var(--ink);line-height:1.1}
-.nbtn:active{transform:translateY(.12rem);box-shadow:0 .03rem 0 var(--ink)}
-.nbtn.del{font-size:.85rem;background:#F1F4F8}
-#teacherOkBtn small{display:block;font-size:.75rem;font-weight:400;opacity:.9}
-.praise{font-size:1.15rem;font-weight:400;margin:.3rem 0 .5rem}
+  svg.cup{ display:block; }
+  #bigCupSvg{ height: clamp(150px,34vh,260px); width:auto; }
+  #smallCupSvg{ height: clamp(85px,19.5vh,150px); width:auto; }
 
-/* ここやで */
-.here{position:fixed;z-index:60;pointer-events:none;display:flex;flex-direction:column;align-items:center;animation:hop .7s ease-in-out infinite}
-.here .bub{background:var(--carry);color:#fff;font-weight:700;font-size:1.4rem;padding:.25rem .9rem;border-radius:999px;border:3px solid #fff;box-shadow:0 .2rem .6rem rgba(0,0,0,.25);white-space:nowrap}
-.here .tip{font-size:1.8rem;line-height:1;color:var(--carry);text-shadow:0 0 .2rem #fff}
-@keyframes hop{50%{margin-top:-.5rem}}
-.here-target{outline:.35rem solid var(--carry);outline-offset:.1rem}
+  .cup-outline{ fill:none; stroke:var(--brown); stroke-width:5; stroke-linejoin:round; }
+  .tick-line{ stroke:var(--brown); stroke-width:3; stroke-linecap:round; }
+  .tick-label{ font-family:'M PLUS Rounded 1c',sans-serif; font-weight:700; font-size:15px; fill:var(--brown-dark); }
+  .tick-label.emphasis{ fill:#E85D75; font-weight:800; }
 
-/* きろく・かいせつ */
-.drawer{position:fixed;inset:0;z-index:70;background:rgba(34,48,74,.45);display:flex;justify-content:center;align-items:flex-start;padding:1rem;overflow:auto}
-.drawer[hidden]{display:none}
-.drawer .sheet{background:#fff;border:3px solid var(--ink);border-radius:1.2rem;max-width:44rem;width:100%;padding:1rem 1.2rem}
-.sheet h2{font-size:1.2rem;margin:.8rem 0 .4rem}
-.sheet h2:first-child{margin-top:0}
-.sheet p,.sheet li{margin:.25rem 0}
-.sheet ul{margin:0;padding-left:1.2rem}
-.cats{display:flex;flex-wrap:wrap;gap:.4rem}
-.cat{font-size:.95rem;padding:.2rem .7rem;border-radius:999px;background:#EEF2F6;color:var(--ink-soft);font-weight:700}
-.cat.has{background:var(--hint-bg);color:var(--hint)}
-.mlog{font-size:.95rem;color:var(--ink-soft)}
-.privacy{font-size:.85rem;color:var(--ink-soft)}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  #bigWater, #smallWater{
+    transition: y 0.5s cubic-bezier(.4,0,.2,1), height 0.5s cubic-bezier(.4,0,.2,1);
+  }
+  #bigWaveTop, #smallWaveTop{
+    transition: cy 0.5s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* pour zone between cups */
+  .pour-zone{
+    position:absolute;
+    pointer-events:none;
+    width: 100%;
+    height:100%;
+    top:0; left:0;
+    overflow:visible;
+  }
+  .drop{
+    position:absolute;
+    width:10px; height:14px;
+    background: radial-gradient(circle at 35% 30%, #BEF3FF, var(--water-dark));
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    opacity:0;
+  }
+  .drop.fall{ animation: dropFall 0.55s ease-in forwards; }
+  @keyframes dropFall{
+    0%{ opacity:1; transform: translate(0,0) scale(0.6) rotate(0deg); }
+    15%{ opacity:1; }
+    100%{ opacity:0.9; transform: translate(var(--dx,-40px), var(--dy,60px)) scale(1) rotate(-15deg); }
+  }
+  .drip{
+    position:absolute;
+    width:8px; height:12px;
+    background: radial-gradient(circle at 35% 30%, #BEF3FF, var(--water-dark));
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    opacity:0;
+    animation: drainFall 0.6s ease-in forwards;
+  }
+  @keyframes drainFall{
+    0%{ opacity:1; transform: translateY(0) scale(0.7); }
+    20%{ opacity:1; }
+    100%{ opacity:0; transform: translateY(70px) scale(1); }
+  }
+
+  /* readout */
+  .readout-wrap{
+    margin-top: 1vh;
+    display:flex;
+    align-items:baseline;
+    gap:6px;
+    background: linear-gradient(180deg,#F2FBFF,#E4F5FF);
+    border: 3px solid #BFE8FF;
+    border-radius: 20px;
+    padding: clamp(3px,0.8vh,8px) 26px;
+    box-shadow: inset 0 -4px 0 rgba(191,232,255,0.6);
+  }
+  .readout-num{
+    font-size: clamp(30px, 6.5vh, 60px);
+    font-weight: 800;
+    color: #1E88C7;
+    line-height:1;
+    text-shadow: 3px 3px 0 #D6EFFF;
+    min-width: 1.1ch;
+    text-align:right;
+    transition: transform 0.15s ease;
+  }
+  .readout-num.bump{ transform: scale(1.18); }
+  .readout-unit{
+    font-size: clamp(15px, 3vh, 24px);
+    font-weight:800;
+    color:#4FA8D8;
+  }
+
+  .celebrate{
+    margin-top: 0;
+    max-height: 0;
+    font-size: clamp(13px, 2.6vh, 20px);
+    font-weight: 800;
+    color:#fff;
+    background: linear-gradient(135deg,#FF8FB3,#FFC15E);
+    padding: 0 26px;
+    border-radius: 999px;
+    box-shadow: none;
+    opacity:0;
+    overflow:hidden;
+    transform: translateY(6px) scale(0.9);
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(.34,1.56,.64,1), max-height 0.35s ease, margin-top 0.35s ease, padding 0.35s ease, box-shadow 0.35s ease;
+    pointer-events:none;
+    text-align:center;
+    white-space:nowrap;
+  }
+  .celebrate.show{
+    opacity:1;
+    max-height: 60px;
+    margin-top: 0.8vh;
+    padding: clamp(5px,1vh,10px) 26px;
+    box-shadow: 0 6px 0 #E88A4A, 0 10px 16px rgba(255,140,100,0.35);
+    transform: translateY(0) scale(1);
+    animation: celebratePulse 1.1s ease-in-out infinite;
+  }
+  @keyframes celebratePulse{
+    0%,100%{ transform: translateY(0) scale(1); }
+    50%{ transform: translateY(-3px) scale(1.03); }
+  }
+
+  .controls{
+    display:flex;
+    gap: clamp(8px, 2.5vw, 18px);
+    margin-top: 1.4vh;
+    flex-wrap: wrap;
+    justify-content:center;
+    width:100%;
+  }
+  .btn{
+    font-family:'M PLUS Rounded 1c',sans-serif;
+    font-weight:800;
+    font-size: clamp(13px, 2.4vh, 18px);
+    color:#fff;
+    border:none;
+    border-radius: 999px;
+    padding: clamp(8px,1.4vh,14px) 20px;
+    min-width: 130px;
+    min-height: clamp(40px, 6.5vh, 54px);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    box-shadow: 0 5px 0 rgba(0,0,0,0.15), 0 7px 12px rgba(0,0,0,0.12);
+    transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
+    touch-action: manipulation;
+  }
+  .btn:active{
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.15), 0 3px 8px rgba(0,0,0,0.12);
+  }
+  .btn:disabled{
+    opacity:0.42;
+    cursor:not-allowed;
+    filter: grayscale(0.3);
+    transform:none;
+  }
+  .btn:disabled:active{ transform:none; box-shadow: 0 6px 0 rgba(0,0,0,0.15), 0 8px 14px rgba(0,0,0,0.12); }
+
+  .btn-add{ background: linear-gradient(135deg,#3FE0B0,#17B4C7); box-shadow: 0 6px 0 #0E8FA0, 0 8px 14px rgba(23,180,199,0.35); }
+  .btn-add:active{ box-shadow: 0 2px 0 #0E8FA0, 0 3px 8px rgba(23,180,199,0.35); }
+  .btn-remove{ background: linear-gradient(135deg,#FF9E7A,#FF6161); box-shadow: 0 6px 0 #D6472F, 0 8px 14px rgba(255,97,97,0.35); }
+  .btn-remove:active{ box-shadow: 0 2px 0 #D6472F, 0 3px 8px rgba(255,97,97,0.35); }
+  .btn-reset{ background: linear-gradient(135deg,#B79CF2,#9575CD); box-shadow: 0 6px 0 #6E4FA8, 0 8px 14px rgba(149,117,205,0.35); }
+  .btn-reset:active{ box-shadow: 0 2px 0 #6E4FA8, 0 3px 8px rgba(149,117,205,0.35); }
+
+  .confetti-layer{
+    position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:50;
+  }
+  .confetti{
+    position:absolute;
+    top:-20px;
+    width:10px; height:16px;
+    opacity:0.95;
+    animation-name: confettiFall;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+  @keyframes confettiFall{
+    0%{ transform: translateY(0) rotate(0deg); }
+    100%{ transform: translateY(110vh) rotate(600deg); }
+  }
+
+  @media (max-width: 480px){
+    .containers-row{ gap: 8px; }
+    .btn{ min-width: 110px; padding: 14px 16px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .celebrate.show{ animation:none; }
+    .drop.fall, .drip{ animation-duration: 0.01s; }
+  }
 </style>
 </head>
 <body>
-<noscript>JavaScriptを有効にしてください。</noscript>
-<div class="app">
 
-  <section class="a-paper">
-    <div class="card" id="paper" aria-label="ひっ算ようし。ゆびやペンで 数字を書こう">
-      <div class="dock">
-        <button class="dbtn" data-act="pen" id="bPen" aria-pressed="true"><span class="ic">✏️</span>えんぴつ</button>
-        <button class="dbtn" data-act="eraser" id="bEraser" aria-pressed="false"><span class="ic">🧽</span>けしごむ</button>
-        <button class="dbtn" data-act="hint"><span class="ic">💡</span>ヒント</button>
-        <button class="dbtn" data-act="undo"><span class="ic">↩️</span>ひとつ<br>もどる</button>
-        <button class="dbtn" data-act="clearStep"><span class="ic">🗑️</span>ぜんぶ<br>けす</button>
-        <button class="dbtn" data-act="pad" id="bPad" aria-pressed="false"><span class="ic">🔢</span>すうじ<br>ボタン</button>
-        <button class="dbtn" data-act="restart" id="bRestart"><span class="ic">🔄</span>はじめ<br>から</button>
+<div class="stage">
+  <div class="title">みずのかさをはかろう！</div>
+  <div class="subtitle">ボタンをおして、1L の ます に みずを いれてみよう</div>
+
+  <div class="lab">
+    <div class="containers-row" id="containersRow">
+
+      <div class="cup-block">
+        <svg id="bigCupSvg" class="cup" viewBox="0 0 260 400">
+          <defs>
+            <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--water-light)"/>
+              <stop offset="100%" stop-color="var(--water-dark)"/>
+            </linearGradient>
+            <clipPath id="bigClip">
+              <path d="M90,20 L230,20 L230,344 Q230,360 214,360 L106,360 Q90,360 90,344 Z"/>
+            </clipPath>
+          </defs>
+          <g clip-path="url(#bigClip)">
+            <rect id="bigWater" x="90" width="140" y="360" height="0" fill="url(#waterGrad)"/>
+            <ellipse id="bigWaveTop" cx="160" cy="360" rx="70" ry="5" fill="#EAFCFF" opacity="0.65"/>
+          </g>
+          <g id="bigTicks"></g>
+          <path class="cup-outline" d="M90,20 L230,20 L230,344 Q230,360 214,360 L106,360 Q90,360 90,344 Z"/>
+        </svg>
+        <div class="cup-caption">1L の ます（10dL）</div>
       </div>
-      <div id="board"></div>
-      <div class="bcol" id="bcol"></div>
-      <div id="bubbles" aria-live="polite"></div>
-      <canvas id="ink"></canvas>
+
+      <div class="pour-zone" id="pourZone"></div>
+
+      <div class="cup-block">
+        <svg id="smallCupSvg" class="cup" viewBox="0 0 140 200">
+          <defs>
+            <clipPath id="smallClip">
+              <path d="M20,30 L120,30 L120,158 Q120,170 108,170 L32,170 Q20,170 20,158 Z"/>
+            </clipPath>
+          </defs>
+          <g clip-path="url(#smallClip)">
+            <rect id="smallWater" x="20" width="100" y="30" height="140" fill="url(#waterGrad)"/>
+            <ellipse id="smallWaveTop" cx="70" cy="30" rx="50" ry="4" fill="#EAFCFF" opacity="0.65"/>
+          </g>
+          <path class="cup-outline" d="M20,30 L120,30 L120,158 Q120,170 108,170 L32,170 Q20,170 20,158 Z"/>
+          <text x="70" y="105" text-anchor="middle" font-family="'M PLUS Rounded 1c',sans-serif" font-weight="800" font-size="20" fill="var(--brown-dark)" opacity="0.55">1dL</text>
+        </svg>
+        <div class="cup-caption">1dL の ちいさい ます</div>
+      </div>
+
     </div>
-  </section>
 
-  <section class="a-guide">
-    <div class="panel pick" id="pick"></div>
-    <div class="panel now" id="now"></div>
-    <div class="panel padp" id="padPanel" hidden></div>
-    <button class="btn block" data-act="teacherOk" id="teacherOkBtn" hidden>先生が「OK」にする</button>
-  </section>
+    <div class="readout-wrap">
+      <span class="readout-num" id="readoutNum">0</span>
+      <span class="readout-unit">dL</span>
+    </div>
+
+    <div class="celebrate" id="celebrate">🎉 10 dL ＝ 1 L 🎉</div>
+
+    <div class="controls">
+      <button class="btn btn-add" id="addBtn">💧 1dL いれる</button>
+      <button class="btn btn-remove" id="removeBtn">🚿 1dL すてる</button>
+      <button class="btn btn-reset" id="resetBtn">🔄 リセット</button>
+    </div>
+  </div>
 </div>
 
-<div class="drawer" id="drawer" hidden>
-  <div class="sheet" id="sheet"></div>
-</div>
+<div class="confetti-layer" id="confettiLayer"></div>
 
 <script>
 (function(){
-'use strict';
+  const SEG = 34;      // big cup: pixels per 1dL (340 / 10)
+  const BOTTOM = 360;   // big cup bottom y
+  const SMALL_TOP = 30;
+  const SMALL_BOTTOM = 170;
+  const MAX_LEVEL = 10;
 
-/*HW-START*/
-var HW = (function(){
-  var N = 40;
-  function arc(cx,cy,rx,ry,a0,a1,n){
-    var r=[]; n=n||20;
-    for(var i=0;i<=n;i++){
-      var a=(a0+(a1-a0)*i/n)*Math.PI/180;
-      r.push([cx+rx*Math.cos(a), cy+ry*Math.sin(a)]);
-    }
-    return r;
-  }
-  function cat(){var r=[];for(var i=0;i<arguments.length;i++)r=r.concat(arguments[i]);return r;}
+  let level = 0;
+  let pouring = false;
 
-  // 数字の見本（0〜100 の枠の中。書き方のちがいを複数用意）
-  var SHAPES = {
-    0:[ [arc(50,50,30,45,270,630,36)], [arc(50,50,22,45,270,630,36)], [arc(50,50,38,44,300,660,36)],
-        [arc(50,50,30,45,255,615,32)], [arc(50,50,34,42,200,590,32)] ],
-    1:[ [[[50,5],[50,95]]], [[[30,28],[50,5],[50,95]]], [[[30,28],[50,5],[50,95]],[[28,95],[72,95]]] ],
-    2:[ [cat(arc(50,32,28,27,185,395,14),[[22,93],[80,93]])],
-        [cat(arc(50,32,28,27,185,395,14),[[22,93]])],
-        [cat(arc(50,32,28,27,185,395,14),[[22,93]]),[[20,93],[80,93]]] ],
-    3:[ [cat(arc(48,27,24,22,200,450,16),arc(48,71,28,23,270,520,18))],
-        [cat([[22,8],[75,8],[45,45]],arc(48,71,28,23,270,520,18))] ],
-    4:[ [[[62,5],[18,62],[85,62]],[[65,30],[65,95]]],
-        [[[28,5],[22,58],[82,58]],[[66,5],[66,95]]],
-        [[[62,5],[15,65],[88,65]],[[62,5],[62,95]]] ],
-    5:[ [cat([[75,8],[30,8],[26,46]],arc(46,68,28,24,250,520,18))],
-        [[[75,8],[30,8]],cat([[30,8],[26,46]],arc(46,68,28,24,250,520,18))] ],
-    6:[ [cat([[66,5],[40,28],[28,55]],arc(50,70,26,25,170,530,22))],
-        [cat([[62,5],[36,30],[24,62]],arc(50,70,26,25,180,540,22))],
-        [[[68,8],[45,18],[28,40],[22,65],[30,85],[50,95],[72,85],[78,65],[65,48],[45,45],[28,58]]],
-        [arc(50,68,27,26,0,360,22),[[28,62],[30,40],[45,18],[68,6]]],
-        [arc(50,62,30,33,0,360,24),[[66,12],[46,22],[32,40]]],
-        [cat([[64,8],[38,24],[26,52]],arc(50,68,26,26,190,550,22))],
-        [[[40,6],[35,50],[32,90]],arc(54,68,22,24,0,360,22)],
-        [cat([[42,5],[34,62]],arc(52,70,22,24,200,560,22))],
-        [cat([[62,5],[28,52]],arc(46,72,24,22,160,520,20))] ],
-    7:[ [[[20,8],[80,8],[40,95]]],
-        [[[20,8],[80,8],[40,95]],[[32,52],[68,52]]],
-        [cat([[18,14],[30,6],[80,8]],[[55,50],[38,95]])] ],
-    8:[ [arc(50,27,21,21,0,360,18),arc(50,72,27,24,0,360,20)].map(function(s){return s;}),
-        [cat(arc(50,28,22,21,320,90,18),arc(50,72,27,24,270,630,22))] ],
-    9:[ [arc(50,30,26,24,0,360,22),[[76,30],[72,60],[55,95]]],
-        [cat(arc(50,30,26,24,30,390,22),[[76,32],[74,65],[58,95]])],
-        [arc(50,30,26,24,0,360,22),[[76,30],[76,95]]] ]
-  };
+  const bigWater = document.getElementById('bigWater');
+  const bigWave = document.getElementById('bigWaveTop');
+  const smallWater = document.getElementById('smallWater');
+  const smallWave = document.getElementById('smallWaveTop');
+  const bigTicks = document.getElementById('bigTicks');
+  const readoutNum = document.getElementById('readoutNum');
+  const celebrate = document.getElementById('celebrate');
+  const addBtn = document.getElementById('addBtn');
+  const removeBtn = document.getElementById('removeBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const pourZone = document.getElementById('pourZone');
+  const confettiLayer = document.getElementById('confettiLayer');
 
-  function dist(a,b){var dx=a.x-b.x,dy=a.y-b.y;return Math.sqrt(dx*dx+dy*dy);}
-  function pathLength(pts){
-    var d=0;
-    for(var i=1;i<pts.length;i++) if(pts[i].id===pts[i-1].id) d+=dist(pts[i-1],pts[i]);
-    return d;
-  }
-  function resample(src,n){
-    var pts=src.map(function(p){return {x:p.x,y:p.y,id:p.id};});
-    var I=pathLength(pts)/(n-1), D=0, out=[pts[0]];
-    if(!(I>0)) return null;
-    for(var i=1;i<pts.length;i++){
-      if(pts[i].id===pts[i-1].id){
-        var d=dist(pts[i-1],pts[i]);
-        if(D+d>=I){
-          var t=(I-D)/d;
-          var q={x:pts[i-1].x+t*(pts[i].x-pts[i-1].x), y:pts[i-1].y+t*(pts[i].y-pts[i-1].y), id:pts[i].id};
-          out.push(q); pts.splice(i,0,q); D=0;
-        }else D+=d;
-      }
-    }
-    while(out.length<n){var l=out[out.length-1];out.push({x:l.x,y:l.y,id:l.id});}
-    return out.slice(0,n);
-  }
-  function normalize(pts){
-    var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9,i;
-    for(i=0;i<pts.length;i++){
-      minx=Math.min(minx,pts[i].x);maxx=Math.max(maxx,pts[i].x);
-      miny=Math.min(miny,pts[i].y);maxy=Math.max(maxy,pts[i].y);
-    }
-    var s=Math.max(maxx-minx,maxy-miny); if(s<1e-6) s=1;
-    var cx=0,cy=0;
-    var o=pts.map(function(p){return {x:(p.x-minx)/s,y:(p.y-miny)/s,id:p.id};});
-    for(i=0;i<o.length;i++){cx+=o[i].x;cy+=o[i].y;}
-    cx/=o.length;cy/=o.length;
-    return o.map(function(p){return {x:p.x-cx,y:p.y-cy,id:p.id};});
-  }
-  function flatten(strokes){
-    var r=[];
-    strokes.forEach(function(s,si){s.forEach(function(p){r.push({x:p.x,y:p.y,id:si});});});
-    return r;
-  }
-  function prep(strokes){
-    strokes=strokes.map(function(st){
-      var o=[];st.forEach(function(p){var l=o[o.length-1];if(!l||Math.abs(p.x-l.x)+Math.abs(p.y-l.y)>=0.8)o.push(p);});
-      return o;
-    });
-    var f=flatten(strokes);
-    if(f.length<2) return null;
-    var r=resample(f,N);
-    return r?normalize(r):null;
-  }
-  function cloudDist(a,b,start){
-    var n=a.length, matched=new Array(n), i, j, sum=0, k=start;
-    for(i=0;i<n;i++) matched[i]=false;
-    do{
-      var min=1e9, idx=-1;
-      for(j=0;j<n;j++){
-        if(!matched[j]){var d=dist(a[k],b[j]); if(d<min){min=d;idx=j;}}
-      }
-      matched[idx]=true;
-      var w=1-((k-start+n)%n)/n;
-      sum+=w*min;
-      k=(k+1)%n;
-    }while(k!==start);
-    return sum;
-  }
-  function greedy(a,b){
-    var n=a.length, step=Math.floor(Math.pow(n,0.5)), m=1e9;
-    for(var i=0;i<n;i+=step){
-      m=Math.min(m,cloudDist(a,b,i),cloudDist(b,a,i));
-    }
-    return m;
+  // build tick marks + labels for big cup
+  for(let i=1;i<=MAX_LEVEL;i++){
+    const y = BOTTOM - i*SEG;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1','90'); line.setAttribute('x2','74');
+    line.setAttribute('y1',y); line.setAttribute('y2',y);
+    line.setAttribute('class','tick-line');
+    bigTicks.appendChild(line);
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x','68'); text.setAttribute('y', y+5);
+    text.setAttribute('text-anchor','end');
+    text.setAttribute('class', i===10 ? 'tick-label emphasis' : 'tick-label');
+    text.textContent = i===10 ? '10dL(1L)' : (i+'dL');
+    bigTicks.appendChild(text);
   }
 
-  function aspect(strokes){
-    var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
-    strokes.forEach(function(s){s.forEach(function(p){
-      minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y);});});
-    var w=maxx-minx,h=maxy-miny; if(h<1e-6) return 3;
-    return Math.min(w/h,1.5);
+  function updateBigWater(){
+    const y = BOTTOM - level*SEG;
+    const h = level*SEG;
+    bigWater.setAttribute('y', y);
+    bigWater.setAttribute('height', h);
+    bigWave.setAttribute('cy', y);
+    readoutNum.textContent = level;
+    readoutNum.classList.add('bump');
+    setTimeout(()=>readoutNum.classList.remove('bump'), 160);
+    addBtn.disabled = level >= MAX_LEVEL || pouring;
+    removeBtn.disabled = level <= 0 || pouring;
+    if(level === MAX_LEVEL){
+      celebrate.classList.add('show');
+      launchConfetti();
+    } else {
+      celebrate.classList.remove('show');
+    }
   }
-  var AR_W=0;
-  var TEMPLATES=[];
-  var USERT=[],USER=[];   // 先生が「この字は合ってる」と教えた、実際の筆跡
-  Object.keys(SHAPES).forEach(function(d){
-    SHAPES[d].forEach(function(shape){
-      var base=shape.map(function(s){return s.map(function(p){return {x:p[0],y:p[1]};});});
-      // 書き方のちがい（ななめ・細い・太い）も見本にする
-      [[0,1],[0.22,1],[-0.22,1],[0,0.72],[0,1.3]].forEach(function(v){
-        var strokes=base.map(function(s){return s.map(function(p){return {x:(p.x-50+v[0]*(p.y-50))*v[1]+50,y:p.y};});});
-        var t=prep(strokes);
-        if(t) TEMPLATES.push({d:parseInt(d,10),pts:t,ar:aspect(strokes)});
-      });
-    });
+
+  function setSmallWater(full){
+    if(full){
+      smallWater.setAttribute('y', SMALL_TOP);
+      smallWater.setAttribute('height', SMALL_BOTTOM - SMALL_TOP);
+      smallWave.setAttribute('cy', SMALL_TOP);
+    } else {
+      smallWater.setAttribute('y', SMALL_BOTTOM);
+      smallWater.setAttribute('height', 0);
+      smallWave.setAttribute('cy', SMALL_BOTTOM);
+    }
+  }
+
+  function spawnDrops(){
+    const rowRect = pourZone.getBoundingClientRect();
+    // approximate start position: near small cup (right side), end near big cup top (left-center)
+    const startX = rowRect.width * 0.62;
+    const startY = rowRect.height * 0.28;
+    for(let i=0;i<6;i++){
+      const drop = document.createElement('div');
+      drop.className = 'drop';
+      drop.style.left = (startX + (Math.random()*10-5)) + 'px';
+      drop.style.top = (startY + (Math.random()*10-5)) + 'px';
+      const dx = -(rowRect.width*0.30) + (Math.random()*14-7);
+      const dy = rowRect.height*0.42 + (Math.random()*10);
+      drop.style.setProperty('--dx', dx+'px');
+      drop.style.setProperty('--dy', dy+'px');
+      drop.style.animationDelay = (i*40)+'ms';
+      pourZone.appendChild(drop);
+      requestAnimationFrame(()=> drop.classList.add('fall'));
+      setTimeout(()=> drop.remove(), 700 + i*40);
+    }
+  }
+
+  function spawnDrainDrops(){
+    const rowRect = pourZone.getBoundingClientRect();
+    const startX = rowRect.width * 0.32;
+    const startY = rowRect.height * 0.85;
+    for(let i=0;i<5;i++){
+      const drip = document.createElement('div');
+      drip.className = 'drip';
+      drip.style.left = (startX + (Math.random()*40-20)) + 'px';
+      drip.style.top = (startY) + 'px';
+      drip.style.animationDelay = (i*35)+'ms';
+      pourZone.appendChild(drip);
+      setTimeout(()=> drip.remove(), 700 + i*35);
+    }
+  }
+
+  function launchConfetti(){
+    const colors = ['#FF6B9D','#FFD166','#4FC3F7','#7ED957','#B388FF'];
+    for(let i=0;i<36;i++){
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = (Math.random()*100)+'vw';
+      c.style.background = colors[Math.floor(Math.random()*colors.length)];
+      c.style.animationDuration = (1.6 + Math.random()*1.2)+'s';
+      c.style.animationDelay = (Math.random()*0.4)+'s';
+      c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      confettiLayer.appendChild(c);
+      setTimeout(()=> c.remove(), 3200);
+    }
+  }
+
+  addBtn.addEventListener('click', () => {
+    if(pouring || level >= MAX_LEVEL) return;
+    pouring = true;
+    addBtn.disabled = true; removeBtn.disabled = true;
+
+    setSmallWater(false);       // small cup drains
+    spawnDrops();                // stream of drops flies to big cup
+
+    setTimeout(() => {
+      level += 1;
+      updateBigWater();          // big cup rises
+    }, 320);
+
+    setTimeout(() => {
+      setSmallWater(true);       // small cup refills
+    }, 620);
+
+    setTimeout(() => {
+      pouring = false;
+      addBtn.disabled = level >= MAX_LEVEL;
+      removeBtn.disabled = level <= 0;
+    }, 950);
   });
 
-  function normStrokes(strokes){
-    var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
-    strokes.forEach(function(s){s.forEach(function(p){minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y);});});
-    var sc=100/Math.max(maxx-minx,maxy-miny,1);
-    return strokes.map(function(s){
-      var o=[];
-      s.forEach(function(p){
-        var q={x:Math.round((p.x-minx)*sc*10)/10,y:Math.round((p.y-miny)*sc*10)/10},l=o[o.length-1];
-        if(!l||Math.abs(q.x-l.x)+Math.abs(q.y-l.y)>=1.5)o.push(q);
-      });
-      return o;
-    });
-  }
-  function rebuildUser(){
-    USERT=[];
-    USER.forEach(function(u){var t=prep(u.strokes);if(t)USERT.push({d:u.d,pts:t,ar:aspect(u.strokes)});});
-  }
-  function addSample(d,strokes){
-    var n=normStrokes(strokes);
-    if(!n.length)return false;
-    USER.push({d:d,strokes:n});
-    var same=USER.filter(function(u){return u.d===d;});
-    if(same.length>6)USER.splice(USER.indexOf(same[0]),1);   // 同じ数字は新しい6こまで
-    rebuildUser();
-    return true;
-  }
-  function exportSamples(){return JSON.stringify(USER);}
-  function importSamples(json){
-    try{
-      var a=JSON.parse(json);
-      if(Array.isArray(a)){USER=a.filter(function(u){return u&&typeof u.d==='number'&&Array.isArray(u.strokes);});rebuildUser();}
-    }catch(e){}
-  }
-  function clearSamples(){USER=[];USERT=[];}
-  // strokes: [[{x,y}...],...] → 数字ごとの距離（小さいほど似ている）
-  function recognize(strokes){
-    var p=prep(strokes);
-    if(!p) return null;
-    var best={}, ar=aspect(strokes);
-    TEMPLATES.concat(USERT).forEach(function(t){
-      var d=greedy(p,t.pts)+AR_W*Math.abs(ar-t.ar);
-      if(best[t.d]===undefined||d<best[t.d]) best[t.d]=d;
-    });
-    var cand=Object.keys(best).map(function(k){return {d:parseInt(k,10),dist:best[k]};});
-    cand.sort(function(a,b){return a.dist-b.dist;});
-    tieBreak(cand,strokes);
-    return {cand:cand,top:cand[0].d,dist:cand[0].dist};
-  }
+  removeBtn.addEventListener('click', () => {
+    if(pouring || level <= 0) return;
+    pouring = true;
+    addBtn.disabled = true; removeBtn.disabled = true;
 
-  // 文字の「重心」が、上にかたよっているか（9）、下にかたよっているか（6）、まんなか（0）か
-  function centroidY(strokes){
-    var f=flatten(strokes);var r=f.length>1?resample(f,N):null;if(!r)return 0.5;
-    var minY=1e9,maxY=-1e9,sum=0,i;
-    for(i=0;i<r.length;i++){minY=Math.min(minY,r[i].y);maxY=Math.max(maxY,r[i].y);sum+=r[i].y;}
-    return maxY>minY?(sum/r.length-minY)/(maxY-minY):0.5;
-  }
-  function tieBreak(cand,strokes){
-    var a=cand[0],b=cand[1];if(!b)return;
-    var pair=[a.d,b.d].sort().join('');
-    if(b.dist>a.dist*1.4)return;
-    var cy=centroidY(strokes),want=null;
-    if(pair==='06'){want=cy>=0.56?6:(cy<=0.52?0:null);}
-    else if(pair==='09'){want=cy<=0.44?9:(cy>=0.49?0:null);}
-    if(want!==null&&a.d!==want&&b.d===want){cand[0]=b;cand[1]=a;}
-  }
-  function bbox(strokes){
-    var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
-    strokes.forEach(function(s){s.forEach(function(p){
-      minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y);
-    });});
-    return {minx:minx,maxx:maxx,miny:miny,maxy:maxy,w:maxx-minx,h:maxy-miny,cx:(minx+maxx)/2,cy:(miny+maxy)/2};
-  }
-  // ストロークを「数字ひとつ分」ごとにまとめる（左から右へ）
-  function group(strokes){
-    var items=strokes.filter(function(s){return s.length>0;}).map(function(s){return {s:s,b:bbox([s])};});
-    items.sort(function(a,b){return a.b.minx-b.b.minx;});
-    var groups=[];
-    items.forEach(function(it){
-      var g=null;
-      for(var i=groups.length-1;i>=0;i--){
-        var gb=groups[i].b;
-        var ov=Math.min(gb.maxx,it.b.maxx)-Math.max(gb.minx,it.b.minx);
-        var minw=Math.max(Math.min(gb.w,it.b.w),1);
-        var contained=(it.b.cx>=gb.minx&&it.b.cx<=gb.maxx);
-        // 9や4のように 2画で書く数字は、横にすこしはなれていても 1つの数字にまとめる
-        var gap=Math.max(it.b.minx-gb.maxx,gb.minx-it.b.maxx);
-        var near=gap<=0.1*Math.max(gb.h,it.b.h);
-        if(ov>0.25*minw||contained||near){g=groups[i];break;}
-      }
-      if(g){g.strokes.push(it.s);g.b=bbox(g.strokes);}
-      else groups.push({strokes:[it.s],b:it.b});
-    });
-    groups.sort(function(a,b){return a.b.cx-b.b.cx;});
-    return groups;
-  }
-  return {recognize:recognize,group:group,bbox:bbox,SHAPES:SHAPES,addSample:addSample,exportSamples:exportSamples,importSamples:importSamples,clearSamples:clearSamples,sampleCount:function(){return USER.length;}};
-})();
-/*HW-END*/
+    spawnDrainDrops();
+    level -= 1;
+    updateBigWater();
 
-/* =========================================================
-   設定・状態
-   ========================================================= */
-var TYPES={'2x1':[2,1],'3x1':[3,1],'2x2':[2,2],'3x2':[3,2]};
-var TYPE_NAMES={'2x1':'2けた<br>×1けた','3x1':'3けた<br>×1けた','2x2':'2けた<br>×2けた','3x2':'3けた<br>×2けた'};
-var CM_NAMES={any:'どちらも',yes:'あり',no:'なし'};
-var cfg={type:'2x1',cm:'any'};
-var PLACE=['一の位','十の位','百の位','千の位','万の位'];
-var HDR=['①一の位','②十の位','百の位','千の位','万の位'];
-var COLCLS=['p-o','p-t','p-h','p-k','p-k'];
-var CIRCS='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳'.split('');
-var BASE_CATS=['一の位の掛け算','十の位の掛け算','百の位の掛け算','答えの数字の配置','繰り上がりの記入','繰り上がりを使う操作','たし算のまちがい'];
-var UNREAD_MSG='うまく読めなかったよ。もう一度、ゆっくり書いてみよう。';
-// 手書き認識のしきい値（実機で様子を見て調整できます）
-var TH={maxDist:2.6,accept:1.2,rank:2,dust:0.15};
-var RELAX=false;
-
-var SAMPLE_KEY='hissan_samples_v1';
-try{var sv=window.localStorage&&localStorage.getItem(SAMPLE_KEY);if(sv)HW.importSamples(sv);}catch(e){}
-function saveSamples(){try{localStorage.setItem(SAMPLE_KEY,HW.exportSamples());}catch(e){}}
-var padOn=false;
-var M=null,S=null;
-var stats={unread:0};BASE_CATS.forEach(function(c){stats[c]=0;});
-var mistakes=[];
-var cellPx=90,cardW=1,cardH=1,dpr=1;
-
-function $(s){return document.querySelector(s);}
-var card=$('#paper'),cv=$('#ink'),ctx=cv.getContext('2d');
-function rep(x,n){return new Array(n+1).join(x+'＋').slice(0,-1);}
-function seqText(y,n){var r=[];for(var i=1;i<=n;i++)r.push(y*i);return r.join('、');}
-function digitsOf(n){return String(n).split('').reverse().map(Number);}
-function dset(n){return String(Math.abs(n)).split('').map(Number);}
-
-/* =========================================================
-   問題のモデル（桁数に関係なく動く）
-   ========================================================= */
-function makeModel(a,b){
-  var A=digitsOf(a),B=digitsOf(b),m=A.length,n=B.length,steps=[],rows=[],r,i,c;
-  for(r=0;r<n;r++){
-    var cin=0,digs={};
-    for(i=0;i<m;i++){
-      var base=A[i]*B[r],v=base+cin,last=(i===m-1);
-      var st={type:'mul',r:r,i:i,A:A[i],B:B[r],cin:cin,base:base,v:v,last:last,targets:[]};
-      if(!last){
-        var cout=Math.floor(v/10);
-        st.cout=cout;st.targets=[{key:'pp-'+r+'-'+(i+r),val:v%10}];
-        digs[i+r]=v%10;
-        steps.push(st);
-        if(cout>0) steps.push({type:'carry',r:r,i:i,j:i+1,cout:cout,v:v,A:A[i],B:B[r],targets:[{key:'cy-'+r+'-'+(i+1),val:cout}]});
-        cin=cout;
-      }else{
-        if(v>=10){
-          st.targets=[{key:'pp-'+r+'-'+(i+r+1),val:Math.floor(v/10)},{key:'pp-'+r+'-'+(i+r),val:v%10}];
-          digs[i+r+1]=Math.floor(v/10);
-        }else st.targets=[{key:'pp-'+r+'-'+(i+r)}].map(function(t){t.val=v;return t;});
-        digs[i+r]=v%10;
-        steps.push(st);
-      }
-    }
-    rows.push(digs);
-  }
-  var ans=a*b,cols=String(ans).length;
-  rows.forEach(function(d){Object.keys(d).forEach(function(k){cols=Math.max(cols,parseInt(k,10)+1);});});
-  if(n===2){
-    var cs=0;
-    for(c=0;c<cols;c++){
-      var x=rows[0][c],y=rows[1][c],has0=x!==undefined,has1=y!==undefined;
-      x=x||0;y=y||0;
-      var v2=x+y+cs;
-      steps.push({type:'add',c:c,x:x,y:y,has0:has0,has1:has1,cin:cs,v:v2,targets:[{key:'sm-'+c,val:v2%10}]});
-      var co=Math.floor(v2/10);
-      if(co>0&&c+1<cols) steps.push({type:'addcarry',c:c,cout:co,v:v2,targets:[{key:'ac-'+(c+1),val:co}]});
-      cs=co;
-    }
-  }
-  // くり上がりを「使う」手順の番号（使ったあとに ✓ を付けるため）
-  var use={};
-  steps.forEach(function(s,k){
-    if(s.type==='carry'){
-      steps.forEach(function(t,k2){if(t.type==='mul'&&t.r===s.r&&t.i===s.j)use[s.targets[0].key]=k2;});
-    }
-    if(s.type==='addcarry'){
-      steps.forEach(function(t,k2){if(t.type==='add'&&t.c===s.c+1)use[s.targets[0].key]=k2;});
-    }
+    setTimeout(() => {
+      pouring = false;
+      addBtn.disabled = level >= MAX_LEVEL;
+      removeBtn.disabled = level <= 0;
+    }, 550);
   });
-  steps.push({type:'done',targets:[]});
-  return {a:a,b:b,A:A,B:B,m:m,n:n,rows:rows,cols:cols,ans:ans,steps:steps,use:use};
-}
-function cur(){return M.steps[S.idx];}
-function writing(st){return st&&st.type!=='done';}
-function colOfKey(k){var p=k.split('-');return parseInt(p[p.length-1],10);}
 
-/* ---- ランダム出題 ---- */
-function rd(lo,hi){return lo+Math.floor(Math.random()*(hi-lo+1));}
-function hasCarry(mod){return mod.steps.some(function(s){return s.type==='carry'||(s.type==='mul'&&s.last&&s.v>=10);});}
-function hasCarryStep(mod){return mod.steps.some(function(s){return s.type==='carry';});}
-function genProblem(type,cm){
-  var sp=TYPES[type],m=sp[0],n=sp[1],tries,a,b,i;
-  for(tries=0;tries<500;tries++){
-    var bd=[],ad=[];
-    if(cm==='no'){
-      for(i=0;i<n;i++)bd.push(rd(2,4));
-      var mx=Math.max.apply(null,bd),amax=Math.max(1,Math.floor(9/mx));
-      for(i=0;i<m;i++)ad.push(rd(1,amax));
-    }else{
-      for(i=0;i<n;i++)bd.push(rd(2,9));
-      for(i=0;i<m;i++)ad.push(rd(1,9));
-    }
-    a=parseInt(ad.join(''),10);b=parseInt(bd.join(''),10);
-    if(cm==='any')return {a:a,b:b};
-    var hc=hasCarry(makeModel(a,b));
-    if(cm==='yes'&&hasCarryStep(makeModel(a,b)))return {a:a,b:b};
-    if(cm==='no'&&!hc)return {a:a,b:b};
-  }
-  return {a:cm==='no'?(m===2?21:m===3?121:12):23,b:cm==='no'?(n===2?12:2):4};
-}
-
-/* =========================================================
-   画面：筆算用紙
-   ========================================================= */
-function slotByKey(k){return document.querySelector('[data-slot="'+k+'"]');}
-function targets(st){
-  return (st.targets||[]).map(function(t){return {key:t.key,val:t.val,el:slotByKey(t.key)};});
-}
-function layoutRows(n){
-  if(n===1) return {tpl:'auto calc(var(--cell)*.95) var(--cell) var(--cell) .55rem calc(var(--cell)*1.2)',cy:{0:2},mc:3,mu:4,r1:5,pp:{0:6},units:4.15,fixed:2.2};
-  return {tpl:'auto calc(var(--cell)*.7) calc(var(--cell)*.7) var(--cell) var(--cell) .5rem calc(var(--cell)*1.05) calc(var(--cell)*1.05) .5rem calc(var(--cell)*.6) calc(var(--cell)*1.15)',
-          cy:{1:2,0:3},mc:4,mu:5,r1:6,pp:{0:7,1:8},r2:9,ac:10,sm:11,units:7.25,fixed:3.3};
-}
-function boardHTML(){
-  var st=cur(),m=M,n=m.n,cols=m.cols,L=layoutRows(n),h='',i,j,r,c;
-  var tg={};(st.targets||[]).forEach(function(t){tg[t.key]=true;});
-  var tcol={};(st.targets||[]).forEach(function(t){tcol[colOfKey(t.key)]=true;});
-  function gc(x){return cols-x+1;}
-  function cell(row,col,cls,inner,attr){return '<div class="cell '+cls+'" style="grid-row:'+row+';grid-column:'+col+'"'+(attr||'')+'>'+inner+'</div>';}
-  function circ(cl){return '<svg class="circ '+cl+'" viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="50" cy="50" rx="47" ry="43" pathLength="100"/></svg>';}
-  var mulStep=st.type==='mul',addStep=(st.type==='add'||st.type==='addcarry'),isDone=st.type==='done';
-  var circleCls=function(c){return c===0?'c-on':c===1?'c-tn':c===2?'c-hn':'c-kn';};
-  // 位の名前
-  for(c=0;c<cols;c++) h+='<div class="hdr '+COLCLS[c]+(tcol[c]?' on':'')+'" style="grid-row:1;grid-column:'+gc(c)+'">'+HDR[c]+(c===1?'<span class="arr">◀</span>':'')+'</div>';
-  // くり上がり欄（かけ算）
-  for(r=0;r<n;r++)for(j=1;j<m.m;j++){
-    var key='cy-'+r+'-'+j,u=(m.use[key]!==undefined)&&(m.use[key]<S.idx);
-    var inner='<span class="ghost">小さく</span>'+(u?'<span class="tick">✓</span>':'');
-    if(mulStep&&st.cin>0&&st.r===r&&st.i===j) inner+=circ('c-cy');
-    h+=cell(L.cy[r],gc(j),'slot carry-slot cyr'+r+(tg[key]?' target':'')+(u?' used':''),inner,' data-slot="'+key+'"');
-  }
-  // かけられる数・かける数
-  for(j=0;j<m.m;j++){
-    var on=mulStep&&st.i===j,dim=(mulStep||st.type==='carry')?!(st.i===j):(addStep);
-    h+=cell(L.mc,gc(j),'digit '+COLCLS[j]+' '+(dim?'dim':'focus'),m.A[j]+(on?circ(circleCls(j)):''),' data-d="A-'+j+'"');
-  }
-  h+=cell(L.mu,1,'sign','×');
-  for(j=0;j<n;j++){
-    var onB=mulStep&&st.r===j,dimB=(mulStep||st.type==='carry')?!(st.r===j):addStep;
-    h+=cell(L.mu,gc(j),'mult'+(dimB?' dim':''),m.B[j]+(onB?circ(mulStep&&st.i>=0?circleCls(st.i):'c-on'):''),' data-d="B-'+j+'"');
-  }
-  h+='<div class="rule" style="grid-row:'+L.r1+';grid-column:1/-1"></div>';
-  // 部分積（n=1のときは答え）
-  var fin=(isDone&&n===1)?' final':'';
-  for(r=0;r<n;r++){
-    var maxc=0;Object.keys(m.rows[r]).forEach(function(k){maxc=Math.max(maxc,parseInt(k,10));});
-    for(c=r;c<=maxc;c++){
-      var k2='pp-'+r+'-'+c,ex='';
-      if(addStep&&st.type==='add'&&st.c===c&&((r===0&&st.has0)||(r===1&&st.has1))) ex=circ(circleCls(c));
-      h+=cell(L.pp[r],gc(c),'slot ans '+COLCLS[c]+(tg[k2]?' target':'')+fin,'<span class="ghost">ここ</span>'+ex,' data-slot="'+k2+'"');
-    }
-  }
-  if(n===2){
-    h+='<div class="rule" style="grid-row:'+L.r2+';grid-column:1/-1"></div>';
-    for(c=1;c<cols;c++){
-      var k3='ac-'+c,u3=(m.use[k3]!==undefined)&&(m.use[k3]<S.idx),ex3='';
-      if(st.type==='add'&&st.c===c&&st.cin>0) ex3=circ('c-cy');
-      h+=cell(L.ac,gc(c),'slot carry-slot cyr0'+(tg[k3]?' target':'')+(u3?' used':''),'<span class="ghost">小さく</span>'+(u3?'<span class="tick">✓</span>':'')+ex3,' data-slot="'+k3+'"');
-    }
-    for(c=0;c<cols;c++){
-      var k4='sm-'+c;
-      h+=cell(L.sm,gc(c),'slot ans '+COLCLS[c]+(tg[k4]?' target':'')+(isDone?' final':''),'<span class="ghost">ここ</span>',' data-slot="'+k4+'"');
-    }
-  }
-  return '<div class="board" style="grid-template-columns:var(--sign) repeat('+cols+',var(--cellw,var(--cell)));grid-template-rows:'+L.tpl+'">'+h+'</div>';
-}
-
-/* =========================================================
-   今やること・ヒント・解説
-   ========================================================= */
-function guide(st){
-  var m=M,n=m.n;
-  switch(st.type){
-    case 'mul':{
-      var text=st.A+'×'+st.B+'を 計算して、'+(st.cin>0?'繰り上がりも合わせる':'答えを書く'),say,sub='';
-      if(st.i===0&&st.r===0) say=n===1?'まず、ここをかけよう！':'まず、かける数の一の位の'+m.B[0]+'から！';
-      else if(st.i===0) say='つぎは、かける数の十の位の'+m.B[1]+'！ひとつ左のマスから 書くよ！';
-      else say='次は、ここをかけよう！'+(st.cin>0?'上に書いた繰り上がりの'+st.cin+'も使うよ！':'');
-      sub=st.last?(st.v>=10?'2けたになったら、そのまま左のマスにも書くよ。':''):'答えが 2けたのときは、一の位だけ ここに書くよ。';
-      return {text:text,say:say,sub:sub};}
-    case 'carry': return {text:'繰り上がりの'+st.cout+'を 書く',say:'十の位の'+st.cout+'を、小さく上に書こう！',sub:''};
-    case 'add':{
-      var parts=[];if(st.has0)parts.push(st.x);if(st.has1)parts.push(st.y);if(st.cin>0)parts.push(st.cin);
-      return {text:parts.length>1?parts.join('＋')+'を たす':'そのまま 下に書く',
-              say:st.c===0?'ここからは たし算！一の位から たそう！':(st.cin>0?'上の小さな'+st.cin+'も たすよ！':'つぎの位も たそう！'),sub:''};}
-    case 'addcarry': return {text:'たし算の繰り上がり'+st.cout+'を 書く',say:'十の位の'+st.cout+'を、となりの上に 小さく書こう！',sub:''};
-  }
-  return {text:'',say:'',sub:''};
-}
-function hintsFor(st){
-  switch(st.type){
-    case 'mul':{
-      var seq=st.A>1?'（'+seqText(st.B,st.A-1)+'…）':'';
-      return {l1:st.A+'×'+st.B+'を考えよう。かけ算だよ。'+st.B+'の段を 声に出してみよう。'+(st.cin>0?'そのあと、上の小さな数も 使うよ。':''),
-              l2:st.B+'の段を '+st.A+'つ目まで 数えよう。'+seq+(st.cin>0?' その答えに 繰り上がりの'+st.cin+'を たそう。':'')+(!st.last?' 答えが2けたなら、一の位だけ ここに書くよ。':'')};}
-    case 'carry': return {l1:st.v+'の 十の位の数は いくつかな？',l2:'十の位の数は、答えには 書かないで、となりの位の 上に 小さく書くよ（繰り上がり）。'};
-    case 'add':{
-      var parts=[];if(st.has0)parts.push(st.x);if(st.has1)parts.push(st.y);if(st.cin>0)parts.push(st.cin);
-      return {l1:'この 位の、上と下の数を たそう。'+(st.cin>0?'上の小さな数も わすれずに。':''),l2:parts.join('＋')+'は いくつかな？'};}
-    case 'addcarry': return {l1:'たし算の答えが 2けたになったよ。',l2:'十の位の数は、となりの位の 上に 小さく書くよ。'};
-  }
-  return {l1:'',l2:''};
-}
-function detailHTML(st){
-  var m=M;
-  switch(st.type){
-    case 'mul':{
-      var h='<p>'+st.A+'×'+st.B+'は「'+st.A+'を'+st.B+'回たす」ことと同じ数です。</p><p>'+rep(st.A,st.B)+'＝<b>'+st.base+'</b></p>';
-      if(st.cin>0) h+='<p>ここで 上の小さな <b>'+st.cin+'</b>（繰り上がり）も 使います。'+st.base+' ＋ '+st.cin+' ＝ <b>'+st.v+'</b></p>';
-      if(st.r===1&&st.i===0) h+='<p>かける数の十の位の計算なので、答えは ひとつ左の マスから 書きます。</p>';
-      h+=st.last?(st.v>=10?'<p>最後の位なので、'+st.v+'を そのまま 左のマスにも 書きます。</p>':'<p><b>'+st.v+'</b> を ここに書きます。</p>')
-                :(st.v>=10?'<p>'+st.v+'は 2けた。1つのマスには 1つしか書けないので、一の位の <b>'+(st.v%10)+'</b> をここに書きます。十の位の <b>'+st.cout+'</b> は、次に 小さく上に書きます。</p>':'<p><b>'+st.v+'</b> を ここに書きます。繰り上がりは ありません。</p>');
-      return h;}
-    case 'carry': return '<p>'+st.v+'の 十の位の <b>'+st.cout+'</b> は、答えには書かず、となりの位の 上に 小さく書きます。</p><p>これが「繰り上がり」。次の位の計算で 使います。</p>';
-    case 'add':{
-      var ps=[];if(st.has0)ps.push(st.x);if(st.has1)ps.push(st.y);if(st.cin>0)ps.push(st.cin);
-      return '<p>'+PLACE[st.c]+'のたし算：'+ps.join('＋')+' ＝ <b>'+st.v+'</b></p>'+(st.v>=10?'<p>2けたなので、一の位の <b>'+(st.v%10)+'</b> を書いて、十の位の1は となりの上に 小さく書きます。</p>':'<p><b>'+st.v+'</b> を 下に書きます。</p>');}
-    case 'addcarry': return '<p>たし算の答えが 2けたのときは、十の位の <b>'+st.cout+'</b> を、となりの位の 上に 小さく書いて、次の位のたし算で 使います。</p>';
-  }
-  return '';
-}
-function okText(st){
-  switch(st.type){
-    case 'mul':
-      if(st.cin>0) return st.last&&st.v>=10?'そう！'+st.base+'＋'+st.cin+'＝'+st.v+'。最後の位だから そのまま書けたね！':'そう！'+st.base+'に繰り上がりの'+st.cin+'を合わせて '+st.v+'だね！';
-      return st.last?'そう！'+st.A+'×'+st.B+'＝'+st.v+'！':'そう！'+st.A+'×'+st.B+'＝'+st.v+'。'+(st.v>=10?'一の位の'+(st.v%10)+'を 書けたね！':'繰り上がりは ないよ！');
-    case 'carry': return '繰り上がりも書けたね！';
-    case 'add':{
-      var ps=[];if(st.has0)ps.push(st.x);if(st.has1)ps.push(st.y);if(st.cin>0)ps.push(st.cin);
-      return ps.length>1?'そう！'+ps.join('＋')+'＝'+st.v+'！':'そう！そのまま 下に書けたね！';}
-    case 'addcarry': return 'くり上がりも書けたね！';
-  }
-  return '';
-}
-function catOf(st,kind){
-  if(kind==='place'||kind==='multi') return '答えの数字の配置';
-  if(st.type==='mul') return PLACE[Math.min(st.i,2)]+'の掛け算';
-  if(st.type==='carry') return '繰り上がりの記入';
-  if(st.type==='addcarry') return '繰り上がりの記入';
-  return 'たし算のまちがい';
-}
-
-/* =========================================================
-   画面の描画
-   ========================================================= */
-function renderNow(){
-  var st=cur(),h='';
-  if(st.type==='done'){
-    var carries=M.steps.some(function(s){return s.type==='carry';});
-    var lines=['一の位から計算できたね！',carries?'繰り上がりも忘れずに使えたね！':'繰り上がりが ないことも たしかめられたね！'];
-    if(M.n===2) lines.push('たし算も できたね！');
-    lines.push(S.mis===0?'まちがいゼロ！すばらしい！':'まちがえたところも、ちゃんと直せたね！');
-    h='<div class="now-main"><span class="num">🎉</span><span>できた！ '+M.a+'×'+M.b+'＝'+M.ans+'！</span></div>'+
-      '<p class="praise">'+lines.join('<br>')+(M.n===1?'<br>たし算でも たしかめられるよ：'+rep(M.a,M.b)+'＝'+M.ans:'')+'</p>'+
-      '<button class="btn" data-act="nextProblem">つぎの もんだい ▶</button>';
-  }else{
-    var g=guide(st),n=M.steps.length-1,dots='';
-    for(var i=0;i<n;i++) dots+='<span class="dot '+(i<S.idx?'done':(i===S.idx?'cur':''))+'"></span>';
-    h='<div class="dots" aria-hidden="true">'+dots+'</div>'+
-      '<div class="now-main"><span class="num">'+(CIRCS[S.idx]||(S.idx+1))+'</span><span>'+g.text+'</span></div>';
-  }
-  $('#now').innerHTML=h;
-}
-function renderPick(){
-  var h='<div class="pick-t">もんだいを えらぶ（ランダム）</div><div class="pick-grid">';
-  Object.keys(TYPES).forEach(function(k){h+='<button class="pbtn" data-act="gen" data-t="'+k+'" aria-pressed="'+(cfg.type===k)+'">'+TYPE_NAMES[k]+'</button>';});
-  h+='</div><div class="pick-t">くり上がり</div><div class="pick-cm">';
-  Object.keys(CM_NAMES).forEach(function(k){h+='<button class="pbtn sm" data-act="cm" data-v="'+k+'" aria-pressed="'+(cfg.cm===k)+'">'+CM_NAMES[k]+'</button>';});
-  h+='</div><div class="pick-row"><button class="chip tool" data-act="drawer">せつめい・きろく</button><button class="chip tool" data-act="big">大きく</button></div>';
-  $('#pick').innerHTML=h;
-}
-function renderReact(){
-  var canTeach=!!(S.teach&&S.teach.step===S.idx);
-  $('#teacherOkBtn').hidden=!(writing(cur())&&(canTeach||(S.unread[S.idx]||0)>=2));
-  $('#teacherOkBtn').innerHTML=canTeach?'先生が「OK」にする<small>この字を おぼえさせる</small>':'先生が「OK」にする';
-  renderBubbles();
-}
-function anchorKey(){var T=cur().targets||[];return T.length?T[0].key:'pp-0-0';}
-function renderBubbles(){
-  var box=$('#bubbles');box.innerHTML='';
-  if(!M||!S)return;
-  var st=cur(),items=[];
-  if(writing(st)){
-    var g=guide(st),anc;
-    if(st.type==='mul') anc=document.querySelector('[data-d="A-'+st.i+'"]');
-    else anc=slotByKey(st.targets[0].key);
-    items.push({kind:'say',html:g.say+((g.sub&&(S.lv[S.idx]||0)>=1)?'<small>'+g.sub+'</small>':''),anchor:anc});
-  }
-  if(S.fb) items.push({kind:S.fb.kind,html:(S.fb.kind==='ok'?'◎ ':'💡 ')+S.fb.text,anchor:slotByKey(S.fb.anchor||'pp-0-0')});
-  var bc=relRect($('#bcol')),placed=[];
-  items.forEach(function(it){
-    var el=document.createElement('div');
-    el.className='bub2 '+it.kind;el.innerHTML=it.html;
-    box.appendChild(el);
-    el.style.left=bc.x+'px';el.style.width=bc.w+'px';
-    var h=el.offsetHeight,a=it.anchor?relRect(it.anchor):{y:cardH/2,h:0};
-    var cy=a.y+a.h/2,top=cy-h/2;
-    placed.forEach(function(p){if(top<p.top+p.h+8&&top+h>p.top-8)top=(cy<p.cy)?p.top-h-8:p.top+p.h+8;});
-    top=Math.max(6,Math.min(cardH-h-6,top));
-    el.style.top=top+'px';
-    el.style.setProperty('--ty',Math.max(16,Math.min(h-16,cy-top))+'px');
-    placed.push({top:top,h:h,cy:cy});
+  resetBtn.addEventListener('click', () => {
+    pouring = true;
+    addBtn.disabled = true; removeBtn.disabled = true;
+    level = 0;
+    updateBigWater();
+    setSmallWater(true);
+    setTimeout(() => {
+      pouring = false;
+      addBtn.disabled = level >= MAX_LEVEL;
+      removeBtn.disabled = level <= 0;
+    }, 550);
   });
-}
-var drawerMode='';
-function renderDetail(){
-  var dr=$('#drawer');
-  if(S.detail&&writing(cur())){
-    $('#sheet').innerHTML='<h2>先生といっしょに 見てみよう</h2>'+detailHTML(cur())+'<p><button class="btn" data-act="closeDetail">とじる</button></p>';
-    dr.hidden=false;drawerMode='detail';
-  }else if(drawerMode==='detail'){dr.hidden=true;drawerMode='';}
-}
-function renderPad(){
-  var p=$('#padPanel');
-  p.hidden=!padOn;
-  $('#bPad').setAttribute('aria-pressed',padOn);
-  if(!padOn){p.innerHTML='';return;}
-  var h='<div class="pick-t">数字ボタン（書けないとき）</div><div class="padg">';
-  [7,8,9,4,5,6,1,2,3].forEach(function(d){h+='<button class="nbtn" data-act="num" data-d="'+d+'">'+d+'</button>';});
-  h+='<button class="nbtn del" data-act="numdel">⌫ けす</button><button class="nbtn" data-act="num" data-d="0">0</button><button class="nbtn del" data-act="numclear">ぜんぶ<br>けす</button></div>';
-  p.innerHTML=h;
-}
-function typedOfStep(){return S.ink.filter(function(s){return s.typed&&s.step===S.idx&&!s.bad;});}
-function pressNum(d){
-  var st=cur();if(!writing(st))return;
-  var T=st.targets,tp=typedOfStep();
-  if(tp.length>=T.length)return;
-  // 手書きの線があれば、ボタン入力にきりかえる
-  S.ink=S.ink.filter(function(s){return !(s.step===S.idx&&!s.typed&&!s.bad);});
-  clearTimeout(S.evalTimer);clearTimeout(S.waitTimer);clearHere();
-  S.ink.push({typed:true,key:T[tp.length].key,d:d,step:S.idx,p:[],bad:false});
-  layoutMeasure();redrawInk();
-  if(tp.length+1===T.length)evaluateTyped();
-}
-function numDel(){var tp=typedOfStep();if(!tp.length)return;S.ink.splice(S.ink.indexOf(tp[tp.length-1]),1);redrawInk();}
-function numClear(){S.ink=S.ink.filter(function(s){return !(s.typed&&s.step===S.idx);});redrawInk();}
-function evaluateTyped(){
-  var st=cur(),T=targets(st),tp=typedOfStep(),bad=-1,i;
-  for(i=0;i<T.length;i++)if(tp[i].d!==T[i].val){bad=i;break;}
-  if(bad<0){solveStep('');return;}
-  var d=tp[bad].d,w=boardWrong(st,{read:{top:d},bad:{kind:'digit'}},T,[]);
-  S.lv[S.idx]=Math.min(3,(S.lv[S.idx]||0)+1);
-  logMistake(catOf(st,'digit'),'ボタンで「'+d+'」'+(w.add?'（たし算かも）':''));
-  tp.forEach(function(o){o.bad=true;});redrawInk();
-  setTimeout(function(){S.ink=S.ink.filter(function(o){return !o.bad;});redrawInk();},750);
-  showHint(st,w.text);
-}
-function renderTools(){
-  $('#bPen').setAttribute('aria-pressed',S.tool==='pen');
-  $('#bEraser').setAttribute('aria-pressed',S.tool==='erase');
-}
-function fitCell(){
-  var rem=parseFloat(getComputedStyle(document.documentElement).fontSize)||16;
-  var cs=getComputedStyle(card),px=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0),py=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
-  var cw=card.clientWidth-px,ch=card.clientHeight-py;
-  if(cw<200||ch<200)return;
-  var L=layoutRows(M.n),cols=M.cols,dock=document.querySelector('.dock'),dw=(dock?dock.offsetWidth:0)+0.6*rem;
-  var availW=cw-dw-9*rem-0.6*rem-cols*0.3*rem;
-  var cW=availW/(0.55+cols),cH=(ch-L.fixed*rem)/L.units;
-  var c=Math.max(44,Math.min(230,cW,cH));
-  var extra=availW-(0.55+cols)*c,wide=c;
-  if(extra>0)wide=Math.min(c*1.3,c+extra/cols);
-  document.documentElement.style.setProperty('--cell',c+'px');
-  document.documentElement.style.setProperty('--cellw',wide+'px');
-}
-function renderAll(){
-  clearHere();
-  renderPick();
-  $('#board').innerHTML=boardHTML();
-  fitCell();
-  renderNow();renderDetail();renderTools();renderPad();
-  cv.className=writing(cur())?'':'off';
-  layoutInk();
-  renderReact();
-  if(window.requestAnimationFrame)requestAnimationFrame(function(){layoutInk();renderBubbles();});
-}
 
-/* =========================================================
-   手書き：キャンバス
-   ========================================================= */
-function lineW(){return Math.max(4,cellPx*0.055);}
-function layoutMeasure(){
-  var r=card.getBoundingClientRect();
-  cardW=r.width||1;cardH=r.height||1;
-  var d=document.querySelector('.digit'),h=d?d.getBoundingClientRect().height:0;
-  cellPx=h>10?h:90;
-}
-function layoutInk(){
-  layoutMeasure();
-  dpr=Math.min(window.devicePixelRatio||1,2.5);
-  cv.width=Math.round(cardW*dpr);cv.height=Math.round(cardH*dpr);
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  redrawInk();
-}
-function drawStroke(s){
-  if(s.typed){
-    var el=slotByKey(s.key);if(!el)return;
-    var rc=relRect(el),fs=Math.round(Math.min(rc.h,cellPx*1.2)*0.8);
-    ctx.font='700 '+fs+'px "UD Digi Kyokasho N-R","UD デジタル 教科書体 N-R","Hiragino Maru Gothic ProN","Yu Gothic UI",sans-serif';
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillStyle=s.bad?'#E8821A':'#2A2F45';
-    ctx.fillText(String(s.d),rc.x+rc.w/2,rc.y+rc.h/2+fs*0.04);
-    return;
-  }
-  var pts=s.p,i;if(!pts.length)return;
-  ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=lineW();
-  ctx.strokeStyle=s.bad?'#E8821A':'#2A2F45';ctx.fillStyle=ctx.strokeStyle;
-  if(pts.length===1){ctx.beginPath();ctx.arc(pts[0].x*cardW,pts[0].y*cardH,lineW()/2,0,6.2832);ctx.fill();return;}
-  ctx.beginPath();ctx.moveTo(pts[0].x*cardW,pts[0].y*cardH);
-  for(i=1;i<pts.length;i++)ctx.lineTo(pts[i].x*cardW,pts[i].y*cardH);
-  ctx.stroke();
-}
-function redrawInk(){ctx.clearRect(0,0,cardW,cardH);S.ink.forEach(drawStroke);}
-function flashRemove(objs){
-  if(!objs||!objs.length)return;
-  objs.forEach(function(o){o.bad=true;});redrawInk();
-  setTimeout(function(){S.ink=S.ink.filter(function(o){return !o.bad;});redrawInk();},750);
-}
-function silentRemove(objs){
-  if(!objs||!objs.length)return;
-  S.ink=S.ink.filter(function(o){return objs.indexOf(o)<0;});redrawInk();
-}
-var drawing=null,pid=null;
-function pt(e){var r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)/(r.width||1),y:(e.clientY-r.top)/(r.height||1)};}
-function segDist(p,a,b){
-  var dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?((p.x-a.x)*dx+(p.y-a.y)*dy)/l:0;
-  t=Math.max(0,Math.min(1,t));
-  return Math.hypot(p.x-(a.x+t*dx),p.y-(a.y+t*dy));
-}
-function eraseAt(p){
-  var px={x:p.x*cardW,y:p.y*cardH},rad=cellPx*0.4,changed=false;
-  S.ink=S.ink.filter(function(s){
-    if(s.step!==S.idx||s.bad||s.typed)return true;
-    var pts=s.p.map(function(q){return {x:q.x*cardW,y:q.y*cardH};}),hit=false;
-    if(pts.length===1)hit=Math.hypot(px.x-pts[0].x,px.y-pts[0].y)<rad;
-    for(var i=1;i<pts.length&&!hit;i++)if(segDist(px,pts[i-1],pts[i])<rad)hit=true;
-    if(hit)changed=true;
-    return !hit;
-  });
-  if(changed)redrawInk();
-}
-function onPenDown(p){
-  var st=cur();if(!writing(st))return;
-  var T=targets(st),px={x:p.x*cardW,y:p.y*cardH},near=false,hit=null;
-  T.forEach(function(t){
-    if(!t.el)return;
-    var rc=relRect(t.el);
-    if(inRect({cx:px.x,cy:px.y},rc,0.5))hit=t;
-    if(Math.hypot(px.x-(rc.x+rc.w/2),px.y-(rc.y+rc.h/2))<cellPx*2.6)near=true;
-  });
-  if(hit)hit.el.classList.add('touching');
-  else if(!near&&T[0]&&T[0].el)showHere(T[0].el,'ここやで！');
-}
-function clearTouching(){var l=document.querySelectorAll('.touching');for(var i=0;i<l.length;i++)l[i].classList.remove('touching');}
-cv.addEventListener('pointerdown',function(e){
-  if(pid!==null||!writing(cur()))return;
-  e.preventDefault();pid=e.pointerId;
-  try{cv.setPointerCapture(pid);}catch(_){}
-  clearTimeout(S.evalTimer);clearTimeout(S.waitTimer);clearHere();
-  var p=pt(e);
-  if(S.tool==='erase'){eraseAt(p);return;}
-  S.ink=S.ink.filter(function(s){return !(s.typed&&s.step===S.idx);});
-  drawing={p:[p],step:S.idx,bad:false};
-  S.ink.push(drawing);drawStroke(drawing);onPenDown(p);
-});
-cv.addEventListener('pointermove',function(e){
-  if(e.pointerId!==pid)return;
-  e.preventDefault();
-  var evs=(e.getCoalescedEvents&&e.getCoalescedEvents())||[e];
-  if(!evs.length)evs=[e];
-  for(var k=0;k<evs.length;k++){
-    var p=pt(evs[k]);
-    if(S.tool==='erase'){eraseAt(p);continue;}
-    if(!drawing)continue;
-    var last=drawing.p[drawing.p.length-1];
-    drawing.p.push(p);
-    ctx.lineCap='round';ctx.lineWidth=lineW();ctx.strokeStyle='#2A2F45';
-    ctx.beginPath();ctx.moveTo(last.x*cardW,last.y*cardH);ctx.lineTo(p.x*cardW,p.y*cardH);ctx.stroke();
-  }
-});
-function penUp(e){
-  if(e.pointerId!==pid)return;
-  pid=null;clearTouching();
-  var was=!!drawing;drawing=null;
-  if(S.tool==='erase'){redrawInk();return;}
-  if(was){
-    var st=cur(),slow=(st.targets||[]).length>1;
-    clearTimeout(S.evalTimer);
-    S.evalTimer=setTimeout(function(){evaluate(false);},slow?1000:700);
-  }
-}
-cv.addEventListener('pointerup',penUp);
-cv.addEventListener('pointercancel',penUp);
-cv.addEventListener('contextmenu',function(e){e.preventDefault();});
-
-var hereEl=null,hereTarget=null,hereTimer=null;
-function clearHere(){
-  if(hereEl&&hereEl.parentNode)hereEl.parentNode.removeChild(hereEl);
-  hereEl=null;
-  if(hereTarget)hereTarget.classList.remove('here-target');
-  hereTarget=null;clearTimeout(hereTimer);
-}
-function showHere(el,text){
-  clearHere();if(!el)return;
-  var r=el.getBoundingClientRect(),d=document.createElement('div'),below=r.top<90;
-  d.className='here';
-  d.innerHTML=below?'<span class="tip">▲</span><span class="bub">'+text+'</span>':'<span class="bub">'+text+'</span><span class="tip">▼</span>';
-  document.body.appendChild(d);
-  var w=d.offsetWidth,h=d.offsetHeight;
-  d.style.left=Math.max(4,Math.min(window.innerWidth-w-4,r.left+r.width/2-w/2))+'px';
-  d.style.top=Math.max(4,below?r.bottom+4:r.top-h-4)+'px';
-  el.classList.add('here-target');hereEl=d;hereTarget=el;
-  hereTimer=setTimeout(clearHere,4200);
-}
-
-/* =========================================================
-   手書きの判定
-   ========================================================= */
-function relRect(el){
-  var r=el.getBoundingClientRect(),c=card.getBoundingClientRect();
-  return {x:r.left-c.left,y:r.top-c.top,w:r.width,h:r.height};
-}
-function inRect(b,rc,k){
-  var ex=k*rc.w,ey=k*Math.max(rc.h,cellPx*0.8);
-  return b.cx>=rc.x-ex&&b.cx<=rc.x+rc.w+ex&&b.cy>=rc.y-ey&&b.cy<=rc.y+rc.h+ey;
-}
-function toPx(s){return s.p.map(function(q){return {x:q.x*cardW,y:q.y*cardH};});}
-function mkRead(r){
-  var top=r.cand[0];
-  var o={top:top.d,dist:top.dist,conf:top.dist<=TH.maxDist};
-  function idx(e){for(var i=0;i<r.cand.length;i++)if(r.cand[i].d===e)return i;return 99;}
-  // 書こうとしている数字（e）と、まちがえやすい数字（rivals）をくらべる。
-  // 8と9のようにまぎらわしいときは、決めつけずに「もう一度」と案内する。
-  o.judge=function(e,rivals){
-    var i=idx(e);if(i>=99)return 'no';
-    var de=Math.max(r.cand[i].dist,1e-6),lo=RELAX?0.95:0.9,hi=RELAX?1.05:1.1,dr=1e9;
-    (rivals||[]).forEach(function(x){var k=idx(x);if(k<99&&r.cand[k].dist<dr)dr=r.cand[k].dist;});
-    if(dr<1e9){var ratio=dr/de;if(ratio<lo)return 'no';if(ratio<hi)return 'amb';}
-    return o.accepts(e)?'ok':'no';
-  };
-  o.accepts=function(e){
-    var i=idx(e);if(i>=99)return false;
-    var ratio=RELAX?1.8:TH.accept,rank=RELAX?4:TH.rank,cap=TH.maxDist*(RELAX?1.5:1.2);
-    return i<=rank&&r.cand[i].dist<=top.dist*ratio&&r.cand[i].dist<=cap;
-  };
-  return o;
-}
-function clusterize(objs){
-  var pxs=objs.map(toPx),groups=HW.group(pxs),out=[],dust=[];
-  groups.forEach(function(g){
-    var members=g.strokes.map(function(px){return objs[pxs.indexOf(px)];});
-    var size=Math.max(g.b.w,g.b.h);
-    if(size<cellPx*TH.dust){dust=dust.concat(members);return;}
-    var r=HW.recognize(g.strokes);
-    out.push({objs:members,b:g.b,read:r?mkRead(r):null});
-  });
-  return {cl:out,dust:dust};
-}
-function flat(cls){var r=[];cls.forEach(function(c){r=r.concat(c.objs);});return r;}
-
-function rivalsFor(st,e){
-  var out=[];
-  function add(n){if(n<0)return;dset(n).forEach(function(d){if(d!==e&&out.indexOf(d)<0)out.push(d);});}
-  if(st.type==='mul'){add(st.A+st.B);add(st.base);if(st.cin>0)add(st.cin);add(st.A);add(st.B);}
-  else if(st.type==='carry'){add(st.v%10);add(st.A);add(st.B);add(st.cout+1);add(st.cout-1);}
-  else if(st.type==='add'){if(st.has0)add(st.x);if(st.has1)add(st.y);if(st.cin>0){add((st.x+st.y)%10);add(st.cin);}}
-  
-  return out;
-}
-function tName(t){return PLACE[colOfKey(t.key)]||'ここ';}
-function boardWrong(st,c,T,missing){
-  var d=c.read.top,kind=c.bad.kind,pt=(missing[0]||T[0]).el;
-  if(kind==='multi') return {text:(T.length>1?'ひとつの マスには':'ここには')+' 1つの数字だけ書くよ。'+(st.type==='mul'&&!st.last&&st.v>=10?st.v+'の一の位を書こう。':''),point:pt};
-  if(kind==='place'){
-    var hit=null;T.forEach(function(t){if(t.val===d&&!hit)hit=t;});
-    if(hit) return {text:d+'は、'+(st.type==='carry'||st.type==='addcarry'?'小さく上に':tName(hit)+'に')+'書こう。',point:hit.el};
-    if(st.type==='mul'&&!st.last&&st.cout>0&&d===st.cout) return {text:d+'は、あとで 小さく上に書くよ。今は '+tName(T[0])+'だよ。',point:pt};
-    if(st.type==='carry') return {text:'繰り上がりは、ここやで！',point:pt};
-    return {text:(T.length>1?'答えは':'ここに書く')+'、ここやで！',point:pt};
-  }
-  // 数字そのものがちがう
-  switch(st.type){
-    case 'mul':{
-      var mc=PLACE[Math.min(st.i,2)]+'の掛け算';
-      if(d===st.A+st.B||d===(st.A+st.B)%10) return {text:'たすのではなく、かけ算だよ。'+st.A+'×'+st.B+'を考えよう。',add:true};
-      if(st.cin>0&&dset(st.base).indexOf(d)>=0) return {text:'上の小さな'+st.cin+'を使おう。'+st.base+'と '+st.cin+'を合わせよう。'};
-      if(M.n===2){
-        var other=M.B[1-st.r];
-        if(dset(st.A*other).indexOf(d)>=0) return {text:st.r===1?'今は かける数の十の位の'+M.B[1]+'だよ。':'今は かける数の一の位の'+M.B[0]+'だよ。'};
-      }
-      if(!st.last&&st.v>=10&&d===st.cout) return {text:d+'は 十の位の数だよ。'+PLACE[st.i+st.r]+'には '+st.v+'の 一の位を書こう。'};
-      if(d===st.A||d===st.B) return {text:'かける前の数ではなく、'+st.A+'×'+st.B+'の答えを 見てみよう。'};
-      return {text:st.A+'×'+st.B+'を考えよう。'+st.B+'の段を思い出そう。'};}
-    case 'carry':
-      if(d===st.v%10) return {text:d+'は もう 答えに書いたよ。十の位の'+st.cout+'を、小さく上に書こう。'};
-      return {text:st.v+'の 十の位の数を、小さく上に書こう。'};
-    case 'add':
-      if(st.cin>0&&d===(st.x+st.y)%10) return {text:'上の小さな'+st.cin+'（くり上がり）も たそう。'};
-      if(d===st.x||d===st.y) return {text:'たし算だよ。上と下の数を たそう。'};
-      return {text:(st.has0&&st.has1?st.x+'＋'+st.y+(st.cin>0?'＋'+st.cin:''):'この位の数')+'を たそう。'};
-    case 'addcarry': return {text:'くり上がりは 1だよ。となりの上に 小さく書こう。'};
-  }
-  return {text:'もう一度 考えてみよう。'};
-}
-function judgeBoard(st,objs){
-  var T=targets(st),cr=clusterize(objs),cl=cr.cl;
-  if(!cl.length)return {act:'none',dust:cr.dust};
-  if(cl.some(function(c){return !c.read;}))return {act:'unread',remove:flat(cl),dust:cr.dust};
-  T.forEach(function(t){t.rect=relRect(t.el);});
-  var byT={};
-  cl.forEach(function(c){
-    var best=null,bd=1e9;
-    T.forEach(function(t){
-      if(inRect(c.b,t.rect,0.5)){
-        var dd=Math.hypot(c.b.cx-(t.rect.x+t.rect.w/2),c.b.cy-(t.rect.y+t.rect.h/2));
-        if(dd<bd){bd=dd;best=t;}
-      }
-    });
-    c.tgt=best;
-    if(best)(byT[best.key]=byT[best.key]||[]).push(c);
-  });
-  cl.forEach(function(c){
-    if(!c.tgt){if(!c.read.conf)c.unr=true;else c.bad={kind:'place'};return;}
-    if(byT[c.tgt.key].length>1){c.bad={kind:'multi'};return;}
-    var s=c.read.judge(c.tgt.val,rivalsFor(st,c.tgt.val));
-    if(s==='ok'){c.good=true;return;}
-    if(s==='amb'||!c.read.conf){c.unr=true;return;}
-    c.bad={kind:'digit'};
-  });
-  function teachOf(list){return list.filter(function(c){return c.tgt;}).map(function(c){return {val:c.tgt.val,strokes:c.objs.map(toPx)};});}
-  var unr=cl.filter(function(c){return c.unr;});
-  if(unr.length)return {act:'unread',remove:flat(unr),dust:cr.dust,teach:teachOf(unr)};
-  var bads=cl.filter(function(c){return c.bad;}),goods=cl.filter(function(c){return c.good;}),cov={};
-  goods.forEach(function(c){cov[c.tgt.key]=true;});
-  var missing=T.filter(function(t){return !cov[t.key];});
-  if(!bads.length){
-    if(!missing.length)return {act:'solve',dust:cr.dust};
-    return {act:'partial',point:missing[0].el,dust:cr.dust,msg:'いいね！もうひとつ、ここやで！'};
-  }
-  var w=boardWrong(st,bads[0],T,missing),k0=bads[0].bad.kind;
-  var r={act:'wrong',teach:teachOf(bads.filter(function(c){return c.bad.kind==='digit';})),cat:catOf(st,k0),detail:'「'+bads[0].read.top+'」と読んだ'+(w.add?'（たし算かも）':''),
-    spec:w.text+(k0==='digit'?'（「'+bads[0].read.top+'」と読んだよ）':''),point:w.point,remove:flat(bads),dust:cr.dust};
-  if(!missing.length&&bads.every(function(c){return c.bad.kind==='place';}))r.act='solveNote';
-  return r;
-}
-
-function showHint(st,spec){
-  var lv=S.lv[S.idx]||0,hs=hintsFor(st),parts=[];
-  if(spec)parts.push(spec);else if(lv===1)parts.push(hs.l1);
-  if(lv>=2)parts.push(hs.l2);
-  if(lv>=3){S.detail=true;parts.push('かいせつを 先生と いっしょに 見てみよう。');}
-  S.fb={kind:'hint',text:parts.join(' '),anchor:anchorKey()};
-  renderReact();renderDetail();
-}
-function giveHint(){
-  var st=cur();if(!writing(st))return;
-  S.lv[S.idx]=Math.min(3,(S.lv[S.idx]||0)+1);
-  showHint(st,null);
-}
-function logMistake(cat,detail){
-  if(!cat)return;
-  stats[cat]=(stats[cat]||0)+1;S.mis++;
-  mistakes.push({p:M.a+'×'+M.b,cat:cat,detail:detail});
-}
-function solveStep(note){
-  clearTimeout(S.evalTimer);clearTimeout(S.waitTimer);clearHere();
-  var st=cur(),T0=st.targets,key=T0.length?T0[T0.length-1].key:'pp-0-0';
-  S.idx++;S.detail=false;S.teach=null;
-  S.fb={kind:'ok',text:okText(st)+(note?' '+note:''),anchor:key};
-  renderAll();
-}
-function applyResult(st,res){
-  silentRemove(res.dust);
-  var k=S.idx;
-  S.teach=(res.teach&&res.teach.length)?{step:k,items:res.teach}:null;
-  switch(res.act){
-    case 'none':redrawInk();return;
-    case 'unread':
-      S.unread[k]=(S.unread[k]||0)+1;stats.unread++;
-      flashRemove(res.remove);
-      S.fb={kind:'hint',text:UNREAD_MSG,anchor:anchorKey()};renderReact();return;
-    case 'partial':
-      S.fb={kind:'ok',text:res.msg,anchor:anchorKey()};renderReact();showHere(res.point,'ここやで！');return;
-    case 'wrong':
-      S.lv[k]=Math.min(3,(S.lv[k]||0)+1);
-      logMistake(res.cat,res.detail);
-      flashRemove(res.remove);
-      if(res.point)showHere(res.point,'ここやで！');
-      showHint(st,res.spec);return;
-    case 'solve':solveStep('');return;
-    case 'solveNote':logMistake('答えの数字の配置','ちがう場所にも書いた');solveStep('（'+res.spec+'）');return;
-  }
-}
-function evaluate(force){
-  clearTimeout(S.evalTimer);clearTimeout(S.waitTimer);
-  var st=cur();if(!writing(st))return;
-  var objs=S.ink.filter(function(s){return s.step===S.idx&&!s.bad&&!s.typed;});
-  if(!objs.length)return;
-  layoutMeasure();
-  RELAX=(S.unread[S.idx]||0)>=2;
-  applyResult(st,judgeBoard(st,objs));
-}
-
-/* =========================================================
-   ボタン類
-   ========================================================= */
-function undo(){
-  var i=S.ink.length-1;
-  while(i>=0&&S.ink[i].bad)i--;
-  if(i<0)return;
-  var s=S.ink.splice(i,1)[0];
-  if(s.step<S.idx)S.idx=s.step;
-  S.fb=null;S.detail=false;renderAll();
-}
-function clearStep(){
-  S.ink=S.ink.filter(function(s){return s.step!==S.idx;});
-  S.fb=null;redrawInk();renderReact();
-}
-var restartTimer=null;
-function restart(){
-  var b=$('#bRestart');
-  if(!restartTimer){
-    b.innerHTML='<span class="ic">❓</span>ほんとに？';
-    restartTimer=setTimeout(function(){restartTimer=null;b.innerHTML='<span class="ic">🔄</span>はじめ<br>から';},3000);
-    return;
-  }
-  clearTimeout(restartTimer);restartTimer=null;
-  b.innerHTML='<span class="ic">🔄</span>はじめ<br>から';
-  startProblem(M.a,M.b);
-}
-function newRandom(){var p=genProblem(cfg.type,cfg.cm);startProblem(p.a,p.b);}
-function teacherHTML(){
-  var m=M,h='';
-  h+='<h2>かけ算の意味</h2><p>'+m.a+'×'+m.b+'は「'+m.a+'を'+m.b+'回たす」ことでも表せます。ひっ算では、位ごとに分けて、<b>一の位から</b>順に かけて、答えを合わせます。</p>';
-  h+='<h2>この問題の解き方（先生用）</h2><ol>';
-  m.steps.forEach(function(s){
-    if(s.type==='mul')h+='<li>'+(m.n===2?'かける数の'+PLACE[s.r]+'の'+s.B+'：':'')+PLACE[s.i]+'：'+s.A+'×'+s.B+(s.cin>0?'＋繰り上がり'+s.cin:'')+'＝'+s.v+(s.last?'':(s.v>=10?' → '+(s.v%10)+'を書く':' → '+s.v+'を書く'))+(s.r===1&&s.i===0?'（ひとつ左のマスから）':'')+'</li>';
-    else if(s.type==='carry')h+='<li>繰り上がり '+s.cout+' を 上に小さく書く</li>';
-    else if(s.type==='add')h+='<li>たし算（'+PLACE[s.c]+'）：'+(s.has0?s.x:'')+(s.has0&&s.has1?'＋':'')+(s.has1?s.y:'')+(s.cin>0?'＋'+s.cin:'')+'＝'+s.v+'</li>';
-    else if(s.type==='addcarry')h+='<li>たし算の繰り上がり '+s.cout+' を 上に小さく書く</li>';
-  });
-  h+='<li>答え：'+m.ans+'</li></ol>';
-  h+='<h2>問題を自分で決める</h2><p>かけられる数（10〜999）×かける数（2〜99・0を含まない）<br><input id="cA" type="number" inputmode="numeric" min="10" max="999" style="width:6rem;font-size:1.2rem"> × <input id="cB" type="number" inputmode="numeric" min="2" max="99" style="width:5rem;font-size:1.2rem"> <button class="btn small" data-act="custom">この問題にする</button> <span id="cMsg" style="color:#B45309"></span></p>';
-  h+='<h2>手書き数字の読み取りについて</h2><p>書いた線をこの端末の中だけで読み取っています（点の並びを、0〜9の見本と比べる方法。外部サービスは使いません）。書いた場所がマス目のどこにあたるかも見ています。確かでないときは、まちがいと決めつけず「うまく読めなかったよ」と案内します。同じ場所で2回続けて読めないと、読み取りをさらに甘くして、「先生が OK にする」ボタンも出します。</p>';
-  h+='<h2>おぼえさせた字</h2><p>「先生が OK にする」を押すと、そのときの字を おぼえて、つぎから読みやすくなります（この端末の中だけに保存）。いま <b>'+HW.sampleCount()+'</b> こ。 <button class="btn small" data-act="forget">ぜんぶ わすれさせる</button></p>';
-  h+='<h2>つまずきメモ（この画面を開いている間だけ）</h2><div class="cats">';
-  Object.keys(stats).forEach(function(c){if(c==='unread')return;h+='<span class="cat'+(stats[c]>0?' has':'')+'">'+c+(stats[c]>0?' ×'+stats[c]:'')+'</span>';});
-  h+='<span class="cat'+(stats.unread>0?' has':'')+'">読めなかった'+(stats.unread>0?' ×'+stats.unread:'')+'</span></div><ul class="mlog">';
-  var last=mistakes.slice(-6).reverse();
-  last.forEach(function(x){h+='<li>'+x.p+'：'+x.cat+'（'+x.detail+'）</li>';});
-  if(!last.length)h+='<li>まだ まちがいは ありません。</li>';
-  h+='</ul><p class="privacy">名前などは保存しません。記録は画面を閉じると消えます。</p>';
-  h+='<p><button class="btn" data-act="closeDrawer">とじる</button></p>';
-  return h;
-}
-function startProblem(a,b){
-  M=makeModel(a,b);
-  S={idx:0,ink:[],fb:null,lv:{},unread:{},tool:'pen',mis:0,detail:false,evalTimer:null,waitTimer:null};
-  renderAll();
-}
-
-/* =========================================================
-   イベント
-   ========================================================= */
-document.addEventListener('click',function(e){
-  var t=e.target.closest?e.target.closest('[data-act]'):null;
-  if(!t){if(e.target===$('#drawer')){$('#drawer').hidden=true;drawerMode='';}return;}
-  var act=t.getAttribute('data-act');
-  if(act==='pen'){S.tool='pen';renderTools();}
-  else if(act==='eraser'){S.tool='erase';renderTools();}
-  else if(act==='hint')giveHint();
-  else if(act==='pad'){padOn=!padOn;renderPad();}
-  else if(act==='num')pressNum(parseInt(t.getAttribute('data-d'),10));
-  else if(act==='numdel')numDel();
-  else if(act==='numclear')numClear();
-  else if(act==='undo')undo();
-  else if(act==='clearStep')clearStep();
-  else if(act==='restart')restart();
-  else if(act==='gen'){cfg.type=t.getAttribute('data-t');newRandom();}
-  else if(act==='cm'){cfg.cm=t.getAttribute('data-v');renderPick();}
-  else if(act==='nextProblem')newRandom();
-  else if(act==='teacherOk'){
-    var note='（先生が OK にしました）';
-    if(S.teach&&S.teach.step===S.idx){
-      S.teach.items.forEach(function(it){HW.addSample(it.val,it.strokes);});
-      saveSamples();note='（先生が OK にしました。この字を おぼえたよ）';
-    }
-    solveStep(note);
-  }
-  else if(act==='forget'){HW.clearSamples();saveSamples();$('#sheet').innerHTML=teacherHTML();}
-  else if(act==='closeDetail'){S.detail=false;renderDetail();}
-  else if(act==='drawer'){$('#sheet').innerHTML=teacherHTML();$('#drawer').hidden=false;drawerMode='teacher';}
-  else if(act==='closeDrawer'){$('#drawer').hidden=true;drawerMode='';}
-  else if(act==='custom'){
-    var a=parseInt($('#cA').value,10),b=parseInt($('#cB').value,10),msg=$('#cMsg');
-    if(!(a>=10&&a<=999)||!(b>=2&&b<=99)||String(b).indexOf('0')>=0){msg.textContent='数を 見なおしてね（かける数に0は つかえません）';return;}
-    cfg.type=(String(a).length===2?'2':'3')+'x'+String(b).length;
-    $('#drawer').hidden=true;drawerMode='';startProblem(a,b);
-  }
-  else if(act==='big'){document.documentElement.classList.toggle('big');renderAll();}
-});
-document.addEventListener('keydown',function(e){
-  if(!padOn||!S||!writing(cur()))return;
-  if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'))return;
-  if(/^[0-9]$/.test(e.key)){pressNum(parseInt(e.key,10));e.preventDefault();}
-  else if(e.key==='Backspace'){numDel();e.preventDefault();}
-});
-['gesturestart','gesturechange','gestureend'].forEach(function(ev){
-  document.addEventListener(ev,function(e){e.preventDefault();});
-});
-var rzTimer=null;
-window.addEventListener('resize',function(){clearTimeout(rzTimer);rzTimer=setTimeout(function(){if(S)renderAll();},150);});
-
-/* =========================================================
-   起動：ランダムな 2けた×1けた から
-   ========================================================= */
-newRandom();
+  // init
+  setSmallWater(true);
+  updateBigWater();
 })();
 </script>
+
 </body>
 </html>
