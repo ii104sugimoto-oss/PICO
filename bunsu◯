@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ホールケーキで分数を知ろう！</title>
+<style>
+  :root {
+    --bg1: #fff9ee;
+    --bg2: #ffe9c7;
+    --ink: #5a3510;
+    --orange: #f28a2e;
+    --orange-dark: #c96a14;
+    --blue: #2f80ed;
+    --blue-soft: #e5f0ff;
+    --red: #e63b6f;
+    --red-soft: #ffe4ec;
+    --card: #ffffff;
+    --line: #ecd9b8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "BIZ UDPGothic", "Hiragino Maru Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+    color: var(--ink);
+    background: linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .app {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 6px 12px 8px;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(16px, 3.4vh, 28px);
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-align: center;
+  }
+
+  /* ---------- 左：ケーキ／右：操作と表示 ---------- */
+  .main {
+    flex: 1 1 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 12px;
+  }
+  .stage { min-height: 0; min-width: 0; }
+  #cake {
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .side {
+    min-height: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .banner {
+    background: #fff;
+    border: 3px solid var(--orange);
+    border-radius: 14px;
+    padding: 6px 12px;
+    text-align: center;
+    font-size: clamp(16px, min(3.6vh, 2.6vw), 28px);
+    font-weight: 800;
+    line-height: 1.35;
+    box-shadow: 0 3px 0 var(--orange-dark);
+  }
+
+  /* ---------- ホールケーキ ---------- */
+  .piece {
+    cursor: pointer;
+    outline: none;
+    transform-origin: 220px 220px;
+    transform: translate(calc(var(--dx) * 1px), calc(var(--dy) * 1px));
+    transition: transform .22s ease, opacity .25s;
+    animation: pop .45s ease backwards;
+    animation-delay: calc(var(--i) * 45ms);
+  }
+  .piece.sel { transform: translate(calc(var(--sx) * 1px), calc(var(--sy) * 1px)); }
+  @keyframes pop {
+    from { opacity: 0; transform: scale(.88); }
+  }
+  .piece .side { fill: #cf8f42; pointer-events: none; }
+  .piece .top  { fill: url(#gCream); stroke: #e0a24f; stroke-width: 4; stroke-linejoin: round; transition: stroke .2s; }
+  .piece .dot  { fill: #fff; stroke: #f0d9a8; stroke-width: 2; pointer-events: none; }
+  .piece .straw, .piece .check { pointer-events: none; }
+  .piece .check { display: none; }
+  .piece .check circle { fill: #fff; stroke: var(--red); stroke-width: 4; }
+  .piece .check path   { fill: none; stroke: var(--red); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+
+  .piece.sel .side { fill: #d6456f; }
+  .piece.sel .top  { fill: url(#gSel); stroke: #c2185b; stroke-width: 4; }
+  .piece.sel .dot  { fill: #ffeaf0; stroke: #ffb3c6; }
+  .piece.sel .straw { display: none; }
+  .piece.sel .check { display: block; }
+  .piece:focus-visible .top { stroke: var(--blue); stroke-width: 6; }
+  @media (hover: hover) {
+    .piece:hover .top { stroke: #b8741f; stroke-width: 5; }
+    .piece.sel:hover .top { stroke: #c2185b; }
+  }
+
+  #underG { pointer-events: none; }
+  .arc-b, .arc-r { fill: none; stroke-linecap: round; stroke-width: 8; }
+  .arc-b { stroke: var(--blue); }
+  .arc-r { stroke: var(--red); }
+
+  #cake.hl-den .piece .top { stroke: var(--blue); stroke-width: 7; }
+  #cake.hl-den .arc-b { animation: pulse .6s ease 3; }
+  #cake.hl-num .piece:not(.sel) { opacity: .35; }
+  #cake.hl-num .piece.sel .top { stroke-width: 8; }
+  #cake.hl-num .arc-r { animation: pulse .6s ease 3; }
+  @keyframes pulse { 50% { stroke-width: 17; } }
+
+  /* ---------- ボタン ---------- */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: clamp(15px, 2vw, 22px);
+    font-weight: 800;
+    min-height: 46px;
+    padding: 4px 14px;
+    border-radius: 14px;
+    border: 3px solid var(--orange);
+    background: #fff;
+    color: var(--orange-dark);
+    box-shadow: 0 4px 0 var(--orange);
+    cursor: pointer;
+    transition: transform .1s, box-shadow .1s, background .2s;
+  }
+  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--orange); }
+  .btn.on { background: var(--orange); color: #fff; box-shadow: 0 4px 0 var(--orange-dark); }
+  .btn:focus-visible { outline: 4px solid var(--blue); outline-offset: 2px; }
+  .btn.reset { border-color: #4e9a6a; color: #2f7a4d; box-shadow: 0 4px 0 #4e9a6a; }
+  .btn.reset:active { box-shadow: 0 1px 0 #4e9a6a; }
+
+  /* ---------- 結果と意味 ---------- */
+  .card {
+    background: var(--card);
+    border: 3px solid var(--line);
+    border-radius: 16px;
+    padding: 6px 12px;
+  }
+  .result {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    min-height: calc(clamp(44px, 11vh, 88px) * 2.1 + 16px);
+  }
+  .rtext { text-align: left; }
+  .msg {
+    font-size: clamp(18px, min(3.6vh, 2.6vw), 30px);
+    font-weight: 800;
+    line-height: 1.35;
+  }
+  .sub { font-size: clamp(13px, 2.4vh, 18px); font-weight: 700; margin-top: 2px; color: #7a5a35; }
+
+  .frac {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    font-size: clamp(44px, 11vh, 88px);
+    font-weight: 800;
+    line-height: 1.05;
+    min-width: 1.4em;
+  }
+  .frac .num { color: var(--red); }
+  .frac .den { color: var(--blue); }
+  .frac .num.empty { color: #c9bda8; }
+  .frac .bar { width: 100%; height: .07em; min-height: 5px; background: var(--ink); border-radius: 4px; margin: .06em 0; }
+  .frac.whole .bar, .frac.whole .num { display: none; }
+  .frac.whole .den { color: var(--ink); }
+  .bump { animation: bump .35s ease; }
+  @keyframes bump {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+  }
+  .reading { font-size: clamp(14px, 2.6vh, 20px); font-weight: 700; min-height: 1.3em; color: #7a5a35; }
+
+  .meaning.hidden { visibility: hidden; }
+  .m-card {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    color: var(--ink);
+    border-radius: 16px;
+    padding: 4px 10px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    border: 3px solid;
+  }
+  .m-card:last-child { margin-bottom: 0; }
+  .m-card.den { background: var(--blue-soft); border-color: var(--blue); }
+  .m-card.num { background: var(--red-soft); border-color: var(--red); }
+  .m-card:focus-visible { outline: 4px solid var(--ink); outline-offset: 2px; }
+  .m-head { display: flex; align-items: center; gap: 10px; font-size: clamp(15px, 2.8vh, 22px); font-weight: 800; }
+  .m-tag { color: #fff; border-radius: 8px; padding: 0 10px; }
+  .den .m-tag { background: var(--blue); }
+  .num .m-tag { background: var(--red); }
+  .m-val { font-size: clamp(14px, 2.6vh, 20px); font-weight: 800; margin-top: 1px; }
+  .den .m-val { color: var(--blue); }
+  .num .m-val { color: var(--red); }
+
+  /* 幅がせまい画面（たて向きなど）は上下に並べる */
+  @media (max-width: 759px) {
+    .app { height: auto; min-height: 100vh; }
+    .main { display: flex; flex-direction: column; }
+    .stage { height: 62vw; max-height: 60vh; flex: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .piece, .bump, #cake.hl-den .arc-b, #cake.hl-num .arc-r { animation: none !important; }
+    .piece { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>ホールケーキで分数を知ろう！</h1>
+
+  <div class="main">
+    <div class="stage">
+      <svg id="cake" viewBox="0 0 440 440" role="group" aria-label="ホールケーキ"></svg>
+    </div>
+
+    <div class="side">
+      <div id="banner" class="banner" aria-live="polite"></div>
+
+      <div class="controls" id="controls">
+        <button class="btn" data-n="2" type="button">2つに分ける</button>
+        <button class="btn" data-n="3" type="button">3つに分ける</button>
+        <button class="btn" data-n="4" type="button">4つに分ける</button>
+        <button class="btn" data-n="5" type="button">5つに分ける</button>
+        <button class="btn" data-n="10" type="button">10こに分ける</button>
+        <button class="btn reset" id="resetBtn" type="button">↺ はじめから</button>
+      </div>
+
+      <div class="card result">
+        <div class="frac" id="frac" aria-live="polite">
+          <div class="num" id="numEl">？</div>
+          <div class="bar"></div>
+          <div class="den" id="denEl">1</div>
+        </div>
+        <div class="rtext">
+          <div class="msg" id="msg" aria-live="polite"></div>
+          <div class="sub" id="sub"></div>
+          <div class="reading" id="reading"></div>
+        </div>
+      </div>
+
+      <div class="card meaning hidden" id="meaning">
+        <button type="button" class="m-card den" id="cardDen" title="タップすると、ケーキに青い線が光るよ">
+          <div class="m-head"><span class="m-tag">分母</span><span>全部をいくつに分けたか</span></div>
+          <div class="m-val" id="denVal"></div>
+        </button>
+        <button type="button" class="m-card num" id="cardNum" title="タップすると、選んだケーキに赤い線が光るよ">
+          <div class="m-head"><span class="m-tag">分子</span><span>そのうち、いくつ分を選んだか</span></div>
+          <div class="m-val" id="numVal"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- 定数・状態 ----------
+  var CX = 220, CY = 220;   // ケーキの中心
+  var R = 160;              // ケーキの半径
+
+  var n = 1;                // 分割数（分母）
+  var sel = new Set();      // 選んだ部分の番号
+  var pieces = [];
+  var hlTimer = null;
+
+  var cake = document.getElementById('cake');
+  var banner = document.getElementById('banner');
+  var msgEl = document.getElementById('msg');
+  var subEl = document.getElementById('sub');
+  var fracEl = document.getElementById('frac');
+  var numEl = document.getElementById('numEl');
+  var denEl = document.getElementById('denEl');
+  var readingEl = document.getElementById('reading');
+  var meaningEl = document.getElementById('meaning');
+  var denVal = document.getElementById('denVal');
+  var numVal = document.getElementById('numVal');
+  var piecesG, underG;
+
+  // ---------- ユーティリティ ----------
+  function unit(k) { return k === 10 ? k + 'こ' : k + 'つ'; }
+  function pt(r, a) { return (CX + r * Math.cos(a)).toFixed(2) + ' ' + (CY + r * Math.sin(a)).toFixed(2); }
+
+  // i番目の角度（真上から時計まわり）。すべて同じ角度＝同じ大きさ
+  function angles(i) {
+    var step = Math.PI * 2 / n;
+    var a0 = -Math.PI / 2 + i * step;
+    return { a0: a0, a1: a0 + step, am: a0 + step / 2 };
+  }
+
+  function shapeD(i) {
+    if (n === 1) {
+      return 'M' + (CX - R) + ' ' + CY + ' a' + R + ' ' + R + ' 0 1 0 ' + (2 * R) + ' 0 a' + R + ' ' + R + ' 0 1 0 ' + (-2 * R) + ' 0 Z';
+    }
+    var a = angles(i);
+    return 'M' + CX + ' ' + CY + ' L' + pt(R, a.a0) + ' A' + R + ' ' + R + ' 0 0 1 ' + pt(R, a.a1) + ' Z';
+  }
+
+  function arcD(r, a0, a1) {
+    return 'M' + pt(r, a0) + ' A' + r + ' ' + r + ' 0 ' + ((a1 - a0) > Math.PI ? 1 : 0) + ' 1 ' + pt(r, a1);
+  }
+
+  function strawberry(x, y, s) {
+    return '<g class="straw" transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + s.toFixed(2) + ')">' +
+      '<path d="M0 -10 C-13 -10 -14 4 0 15 C14 4 13 -10 0 -10 Z" fill="#e8404f" stroke="#b81f35" stroke-width="1.5"/>' +
+      '<path d="M-8 -11 L-3 -17 L0 -12 L3 -17 L8 -11 Z" fill="#4aa35a"/>' +
+      '<circle cx="-4" cy="-3" r="1.3" fill="#ffe9a8"/><circle cx="4" cy="-3" r="1.3" fill="#ffe9a8"/>' +
+      '<circle cx="0" cy="3" r="1.3" fill="#ffe9a8"/><circle cx="-3" cy="8" r="1.3" fill="#ffe9a8"/><circle cx="3" cy="8" r="1.3" fill="#ffe9a8"/>' +
+      '</g>';
+  }
+
+  // ---------- ホールケーキの描画 ----------
+  function defsHTML() {
+    return '' +
+      '<defs>' +
+      '<radialGradient id="gCream" cx=".5" cy=".5" r=".6">' +
+        '<stop offset="0" stop-color="#fffdf7"/><stop offset="1" stop-color="#fbe6bd"/>' +
+      '</radialGradient>' +
+      '<radialGradient id="gSel" cx=".5" cy=".5" r=".6">' +
+        '<stop offset="0" stop-color="#ffc9d6"/><stop offset="1" stop-color="#ff7396"/>' +
+      '</radialGradient>' +
+      '</defs>' +
+      '<circle cx="' + CX + '" cy="' + (CY + 2) + '" r="214" fill="#ffffff" stroke="#eadfc9" stroke-width="4"/>' +
+      '<circle cx="' + CX + '" cy="' + (CY + 2) + '" r="208" fill="none" stroke="#f1e8d6" stroke-width="2"/>';
+  }
+
+  function pieceHTML(i) {
+    var a = angles(i);
+    var d = shapeD(i);
+    var ux = Math.cos(a.am), uy = Math.sin(a.am);
+    var off = n > 1 ? 5 : 0;      // 切れ目のすき間（大きさは変えず、外へ少しずらす）
+    var lift = n > 1 ? 14 : 0;    // 選んだ部分は、さらに外へ出る
+    var h = '<g class="piece" data-i="' + i + '" tabindex="0" role="button" aria-pressed="false" aria-label="' + (i + 1) + 'こめのケーキ"' +
+            ' style="--i:' + i + ';--dx:' + (off * ux).toFixed(2) + ';--dy:' + (off * uy).toFixed(2) +
+            ';--sx:' + (lift * ux).toFixed(2) + ';--sy:' + (lift * uy).toFixed(2) + '">';
+    h += '<path class="side" transform="translate(0 8)" d="' + d + '"/>';
+    h += '<path class="top" d="' + d + '"/>';
+
+    // ふちのクリーム
+    var rd = R - 14, m = n === 1 ? 0 : 13 / rd, cnt, k, aa;
+    var avail = (a.a1 - a.a0) - 2 * m;
+    if (n === 1) {
+      cnt = 38;
+      for (k = 0; k < cnt; k++) {
+        aa = a.a0 + k * (Math.PI * 2 / cnt);
+        h += '<circle class="dot" cx="' + (CX + rd * Math.cos(aa)).toFixed(1) + '" cy="' + (CY + rd * Math.sin(aa)).toFixed(1) + '" r="7"/>';
+      }
+    } else if (avail > 0) {
+      cnt = Math.max(1, Math.floor(avail * rd / 24) + 1);
+      for (k = 0; k < cnt; k++) {
+        aa = cnt === 1 ? a.am : a.a0 + m + k * avail / (cnt - 1);
+        h += '<circle class="dot" cx="' + (CX + rd * Math.cos(aa)).toFixed(1) + '" cy="' + (CY + rd * Math.sin(aa)).toFixed(1) + '" r="7"/>';
+      }
+    }
+
+    // いちご（1つ分に1こ）と、選んだときのチェック
+    if (n > 1) {
+      var dist = 0.58 * R;
+      var x = CX + dist * ux, y = CY + dist * uy;
+      var chord = 2 * dist * Math.sin(Math.PI / n);
+      h += strawberry(x, y, Math.min(1.25, chord * 0.5 / 24));
+      var sc = Math.min(1, chord * 0.6 / 38);
+      h += '<g class="check" transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + sc.toFixed(2) + ')">' +
+           '<circle r="19"/><path d="M-8 1 L-2 8 L9 -7"/></g>';
+    }
+    return h + '</g>';
+  }
+
+  function renderCake() {
+    var html = '', i;
+    for (i = 0; i < n; i++) html += pieceHTML(i);
+    cake.innerHTML = defsHTML() + '<g id="piecesG">' + html + '</g><g id="underG"></g>';
+    piecesG = document.getElementById('piecesG');
+    underG = document.getElementById('underG');
+    pieces = Array.prototype.slice.call(piecesG.querySelectorAll('.piece'));
+  }
+
+  // ケーキの外側の線：青＝分けた数（分母）／赤＝選んだ数（分子）
+  function underHTML() {
+    var s = '', i, a, m = 0.035;
+    if (n === 1) {
+      s += '<circle cx="' + CX + '" cy="' + CY + '" r="' + (R + 28) + '" fill="none" stroke="#5a3510" stroke-width="5"/>';
+      s += '<g><circle cx="' + CX + '" cy="' + CY + '" r="38" fill="#fff" stroke="#5a3510" stroke-width="4"/>' +
+           '<text x="' + CX + '" y="' + (CY + 18) + '" text-anchor="middle" font-size="54" font-weight="800" fill="#5a3510">1</text></g>';
+      return s;
+    }
+    for (i = 0; i < n; i++) {
+      a = angles(i);
+      s += '<path class="arc-b" d="' + arcD(R + 28, a.a0 + m, a.a1 - m) + '"/>';
+      if (sel.has(i)) {
+        s += '<path class="arc-r" d="' + arcD(R + 42, a.a0 + m, a.a1 - m) + '"/>';
+      }
+    }
+    return s;
+  }
+
+  // ---------- 表示の更新（選択のたびに呼ぶ） ----------
+  function bumpEl(el) {
+    el.classList.remove('bump');
+    void el.offsetWidth;
+    el.classList.add('bump');
+  }
+
+  var lastNum = null, lastDen = null;
+
+  function update() {
+    var k = sel.size, i;
+
+    for (i = 0; i < pieces.length; i++) {
+      var on = sel.has(i);
+      pieces[i].classList.toggle('sel', on);
+      pieces[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    underG.innerHTML = underHTML();
+
+    if (n === 1) {
+      banner.textContent = 'このホールケーキ、ぜんぶで1個分だよ！';
+    } else {
+      banner.textContent = 'ホールケーキを、同じ大きさの' + unit(n) + 'に分けたよ！';
+    }
+
+    var msg, sub = '';
+    if (k === 0) {
+      msg = n === 1 ? 'ケーキをタップするか、ボタンで分けてみよう！'
+                    : 'ケーキをタップして、選んでみよう！';
+    } else if (k === n) {
+      msg = '全部で1個分！';
+      if (n > 1) sub = unit(n) + 'に分けたうちの' + k + 'つ分 ＝ ホールケーキ1個ぜんぶ';
+    } else {
+      msg = unit(n) + 'に分けたうちの' + k + 'つ分！';
+    }
+    msgEl.textContent = msg;
+    subEl.textContent = sub;
+
+    // 分数（約分しない：分母＝分けた数、分子＝選んだ数）
+    var whole = (n === 1 && k === 0);
+    fracEl.classList.toggle('whole', whole);
+    denEl.textContent = String(n);
+    if (k === 0) {
+      numEl.textContent = '？';
+      numEl.classList.add('empty');
+    } else {
+      numEl.textContent = String(k);
+      numEl.classList.remove('empty');
+    }
+    if (lastNum !== k && !whole) bumpEl(numEl);
+    if (lastDen !== n) bumpEl(denEl);
+    lastNum = k; lastDen = n;
+
+    if (whole) {
+      readingEl.textContent = 'まるごと1個が「1」だよ';
+    } else if (k === 0) {
+      readingEl.textContent = '';
+    } else if (n === 1) {
+      readingEl.textContent = 'ホールケーキ1個ぜんぶで「1」';
+    } else {
+      readingEl.textContent = 'よみかた：「' + n + '分の' + k + '」';
+    }
+
+    // 分母と分子の説明（ケーキを分けたあとに表示）
+    meaningEl.classList.toggle('hidden', n === 1);
+    denVal.textContent = '→ ぜんぶで' + unit(n) + 'に分けたから ' + n;
+    numVal.textContent = k > 0 ? '→ ' + k + 'つ分を選んだから ' + k
+                               : '→ まだ選んでいないよ';
+
+    var btns = document.querySelectorAll('#controls .btn[data-n]');
+    for (i = 0; i < btns.length; i++) {
+      btns[i].classList.toggle('on', Number(btns[i].getAttribute('data-n')) === n);
+    }
+  }
+
+  // ---------- 操作 ----------
+  function clearHighlight() {
+    clearTimeout(hlTimer);
+    cake.classList.remove('hl-den', 'hl-num');
+  }
+
+  function flash(mode) {
+    clearHighlight();
+    void cake.getBoundingClientRect();
+    cake.classList.add('hl-' + mode);
+    hlTimer = setTimeout(clearHighlight, 2800);
+  }
+
+  function setN(k) {
+    if (k === n) return;
+    n = k;
+    sel.clear();
+    clearHighlight();
+    renderCake();
+    update();
+  }
+
+  function toggle(i) {
+    if (sel.has(i)) sel.delete(i); else sel.add(i);
+    update();
+  }
+
+  function resetAll() {
+    n = 1;
+    sel.clear();
+    clearHighlight();
+    lastNum = null; lastDen = null;
+    renderCake();
+    update();
+  }
+
+  // ---------- イベント ----------
+  cake.addEventListener('click', function (e) {
+    var t = e.target;
+    while (t && t !== cake && !(t.classList && t.classList.contains('piece'))) t = t.parentNode;
+    if (!t || t === cake) return;
+    toggle(Number(t.getAttribute('data-i')));
+  });
+
+  cake.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var t = e.target;
+    if (t && t.classList && t.classList.contains('piece')) {
+      e.preventDefault();
+      toggle(Number(t.getAttribute('data-i')));
+    }
+  });
+
+  var btns = document.querySelectorAll('#controls .btn[data-n]');
+  Array.prototype.forEach.call(btns, function (b) {
+    b.addEventListener('click', function () { setN(Number(b.getAttribute('data-n'))); });
+  });
+  document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+  document.getElementById('cardDen').addEventListener('click', function () { flash('den'); });
+  document.getElementById('cardNum').addEventListener('click', function () {
+    if (sel.size > 0) flash('num');
+  });
+
+  // ---------- 起動 ----------
+  renderCake();
+  update();
+})();
+</script>
+</body>
+</html>
